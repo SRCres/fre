@@ -1,0 +1,33 @@
+{
+  "name": "fre.js",
+  "version": "0.0.1",
+  "description": "Flatpolys Rendering Engine.",
+  "main": "dist/fre.min.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SRCres/fre.git"
+  },
+  "keywords": [
+    "WebGL",
+    "fre",
+    "flatpolys"
+  ],
+  "author": "srcres",
+  "license": "GPLv2",
+  "bugs": {
+    "url": "https://github.com/SRCres/fre/issues"
+  },
+  "homepage": "https://github.com/SRCres/fre",
+  "devDependencies": {
+    "gulp": "~3.9.0",
+    "browserify": "~11.0.0",
+    "require-dir": "~0.3.0",
+    "lodash": "~3.10.0",
+    "browser-sync": "~2.8.0",
+    "vinyl-source-stream": "~1.1.0",
+    "gulp-util": "~3.0.6",
+    "pretty-hrtime": "~1.0.0",
+    "gulp-notify": "~2.2.0",
+    "watchify": "~3.3.0"
+  }
+}
