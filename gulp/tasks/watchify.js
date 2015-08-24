@@ -1,6 +1,7 @@
-var gulp = require('gulp'),
-    browserifyTask = require('./browserify');
+var browserifyTask = require('./browserify'),
+    env = require('../config').development,
+    gulp = require('gulp');
 
 gulp.task('watchify', function() {
-  return browserifyTask(true);
+  return browserifyTask(env);
 });

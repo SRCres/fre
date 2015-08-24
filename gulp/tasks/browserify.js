@@ -1,5 +1,4 @@
-var _ = require('lodash'),
-    browserify = require('browserify'),
+var browserify = require('browserify'),
     browserSync = require('browser-sync'),
     bundleLogger = require('../util/bundleLogger'),
     config = require('../config').browserify,
@@ -8,40 +7,34 @@ var _ = require('lodash'),
     source = require('vinyl-source-stream'),
     watchify = require('watchify');
 
-var browserifyTask = function(devMode) {
-  if (devMode) {
-    _.extend(config, watchify.args, { debug: true });
-  }
-
+module.exports = function(env) {
   var b = browserify(config);
 
   var bundle = function() {
-    bundleLogger.start(config.outputName);
+    bundleLogger.start(env.output);
 
-    return b
-      .bundle()
+    var bundle = b.bundle();
+
+    stream = bundle
       .on('error', handleErrors)
-      .pipe(source(config.outputName))
-      .pipe(gulp.dest(config.dest))
-      .pipe(browserSync.reload({
-        stream: true
-      }));
+      .pipe(source(env.output));
+
+    if (env.name === 'dev') {
+      stream = stream
+        .pipe(gulp.dest(env.dest))
+        .pipe(browserSync.reload({
+          stream: true
+        }));
+    }
+
+    return stream;
   };
 
-  if (devMode) {
-    b = watchify(b);
-    b.on('update', bundle);
-    bundleLogger.watch(config.outputName);
+  if (env.name === 'dev') {
+    var w = watchify(b);
+    w.on('update', bundle);
+    bundleLogger.watch(env.output);
   }
 
   return bundle();
-
-// Start bundling with Browserify for each bundleConfig specified
-//return mergeStream.apply(gulp, _.map(config.bundleConfigs, browserifyThis));
 };
-
-gulp.task('browserify', function() {
-  return browserifyTask();
-});
-
-module.exports = browserifyTask;

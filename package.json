@@ -28,6 +28,9 @@
     "gulp-util": "~3.0.6",
     "pretty-hrtime": "~1.0.0",
     "gulp-notify": "~2.2.0",
-    "watchify": "~3.3.0"
+    "watchify": "~3.3.0",
+    "gulp-filesize": "0.0.6",
+    "gulp-uglify": "~1.2.0",
+    "vinyl-buffer": "~1.0.0"
   }
 }

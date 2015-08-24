@@ -1,6 +1,6 @@
 var fre = require('../fre.js');
 
-"use strict";
+'use strict';
 
 /**
  * Obtiene un contexto WebGL y lo retorna.

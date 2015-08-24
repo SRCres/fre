@@ -3,17 +3,21 @@ var src = './src';
 
 module.exports = {
   browserSync: {
-    server: {
-      baseDir: dest
-    }
+    proxy: 'http://localhost/~srcres/Projects/fre/examples/'
   },
   browserify: {
     entries: src + '/fre.js',
+    cache: {},
+    packageCache: {}
+  },
+  development: {
+    name: 'dev',
     dest: dest,
-    outputName: 'fre.js'
+    output: 'fre.js'
   },
   production: {
-    js: dest + '/*.js',
-    dest: dest
+    name: 'prod',
+    dest: dest,
+    output: 'fre.min.js'
   }
 };

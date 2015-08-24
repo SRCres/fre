@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 window.fre = { version: '0.0.1' };
 

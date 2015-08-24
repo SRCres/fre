@@ -1,5 +1,5 @@
 var gulp = require('gulp');
 
 gulp.task('default', function() {
-  gulp.start('watchify');
+  gulp.start('watchify', 'browserSync');
 });
