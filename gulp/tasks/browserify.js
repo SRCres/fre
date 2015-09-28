@@ -7,13 +7,15 @@ var browserify = require('browserify'),
     source = require('vinyl-source-stream'),
     watchify = require('watchify');
 
-module.exports = function(env) {
-  var b = browserify(config);
+module.exports = function (env) {
+  var b = browserify(config), bundle;
 
-  var bundle = function() {
+  bundle = function () {
+    var bundle;
+
     bundleLogger.start(env.output);
 
-    var bundle = b.bundle();
+    bundle = b.bundle();
 
     stream = bundle
       .on('error', handleErrors)
@@ -32,6 +34,7 @@ module.exports = function(env) {
 
   if (env.name === 'dev') {
     var w = watchify(b);
+
     w.on('update', bundle);
     bundleLogger.watch(env.output);
   }

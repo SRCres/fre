@@ -8,4 +8,4 @@ module.exports = window.fre;
  * @todo Mejorar el punto de entrada para no tener
  * que requerir todos los archivos aquí.
  **/
-require('./renderer/WebGLRenderer');
+require('./gl/gl');

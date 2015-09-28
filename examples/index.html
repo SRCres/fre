@@ -4,7 +4,39 @@
   <meta charset="utf-8">
   <title>fre &raquo; examples</title>
 </head>
-<body>
+<body onload="main()">
+<canvas id="example" width="800" height="600"></canvas>
 <script type="text/javascript" src="../dist/fre.js"></script>
+<script type="text/javascript">
+var VERT_SHADER_SOURCE =
+  'void main() {\n' +
+  '  gl_Position = vec4(0.0, 0.0, 0.0, 1.0);\n' +
+  '  gl_PointSize = 10.0;\n' +
+  '}\n';
+
+var FRAG_SHADER_SOURCE =
+  'void main() {\n' +
+  '  gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);\n' +
+  '}\n';
+
+function main() {
+  var canvas = document.getElementById('example'),
+    gl = fre.gl.getWebGLContext(canvas);
+
+  if (!gl) {
+    console.log('No se pudo obtener el contexto de renderizado para WebGL.');
+    return;
+  }
+
+  var program = fre.gl.initProgram(gl, VERT_SHADER_SOURCE, FRAG_SHADER_SOURCE);
+  if (!program) {
+    console.log('Error en la inicialización del programa.');
+  }
+
+  gl.clearColor(0.0, 0.0, 0.0, 1.0);
+  gl.clear(gl.COLOR_BUFFER_BIT);
+  gl.drawArrays(gl.POINTS, 0, 1);
+}
+</script>
 </body>
 </html>
