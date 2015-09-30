@@ -7,18 +7,18 @@
 <body onload="main()">
 <canvas id="example" width="800" height="600"></canvas>
 <script type="text/javascript" src="../dist/fre.js"></script>
+<script id="vshader" type="x-shader/x-vertex">
+void main() {
+  gl_Position = vec4(0.0, 0.0, 0.0, 1.0);
+  gl_PointSize = 10.0;
+}
+</script>
+<script id="fshader" type="x-shader/x-fragment">
+void main() {
+  gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+}
+</script>
 <script type="text/javascript">
-var VERT_SHADER_SOURCE =
-  'void main() {\n' +
-  '  gl_Position = vec4(0.0, 0.0, 0.0, 1.0);\n' +
-  '  gl_PointSize = 10.0;\n' +
-  '}\n';
-
-var FRAG_SHADER_SOURCE =
-  'void main() {\n' +
-  '  gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);\n' +
-  '}\n';
-
 function main() {
   var canvas = document.getElementById('example'),
     gl = fre.gl.getWebGLContext(canvas);
@@ -28,13 +28,16 @@ function main() {
     return;
   }
 
-  var program = fre.gl.initProgram(gl, VERT_SHADER_SOURCE, FRAG_SHADER_SOURCE);
+  var program = fre.gl.createProgramWithScripts(gl, ['vshader', 'fshader']);
   if (!program) {
-    console.log('Error en la inicialización del programa.');
+    console.log('Error en la creación del programa.');
   }
 
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
   gl.clear(gl.COLOR_BUFFER_BIT);
+
+  gl.useProgram(program);
+
   gl.drawArrays(gl.POINTS, 0, 1);
 }
 </script>
