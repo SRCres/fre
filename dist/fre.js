@@ -1,7 +1,10 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 'use strict';
 
-window.fre = { version: '0.0.1' };
+window.fre = {
+  version: '0.0.1',
+  error: window.console && window.console.error ? window.console.error.bind(window.console) : function () { }
+};
 
 module.exports = window.fre;
 
@@ -9,15 +12,23 @@ module.exports = window.fre;
  * @todo Mejorar el punto de entrada para no tener
  * que requerir todos los archivos aquí.
  **/
+
+// loaders
+require('./loaders/ajax');
+
+// gl
 require('./gl/gl');
 
-},{"./gl/gl":2}],2:[function(require,module,exports){
-fre = require('../fre');
-
+},{"./gl/gl":2,"./loaders/ajax":3}],2:[function(require,module,exports){
 'use strict';
 
+fre = require('../fre');
+
+var FRAGMENT_SHADER = 0x8B30;
+var VERTEX_SHADER = 0x8B31;
+
 fre.gl = {
-  error: window.console && window.console.error ? window.console.error.bind(window.console) : function () { },
+  shaderTypes: [VERTEX_SHADER, FRAGMENT_SHADER],
 
   /**
    * Obtiene un contexto WebGL y lo retorna.
@@ -42,6 +53,52 @@ fre.gl = {
   },
 
   /**
+   * Crea un programa con fuentes.
+   * @param  {WebGLRenderingContext} gl Contexto de renderizado WebGL.
+   * @param  {String[]} sources Fuentes de los shaders.
+   * @param  {Function} errorCallback Callback para errores.
+   * @return {WebGLProgram} Programa creado. Si falla retorna null.
+   */
+  createProgramWithSources: function (gl, sources, errorCallback) {
+    var shaders = [];
+
+    for (var i = 0; i < sources.length; i++) {
+      var shader = this.createShader(gl, sources[i], this.shaderTypes[i], errorCallback);
+
+      if (!shader) {
+        return null;
+      }
+
+      shaders.push(shader);
+    }
+
+    return this.createProgram(gl, shaders, errorCallback);
+  },
+
+  /**
+   * Crea un program con elementos scripts.
+   * @param  {WebGLRenderingContext} gl Contexto de renderizado WebGL.
+   * @param  {String[]} ids Ids de los elementos script.
+   * @param  {Function} [errorCallback] Callback para errores.
+   * @return {WebGLProgram} Programa creado. Si falla retorna null.
+   */
+  createProgramWithScripts: function (gl, ids, errorCallback) {
+    var shaders = [];
+
+    for (var i = 0; i < ids.length; i++) {
+      var shader = this.createShaderWithScript(gl, ids[i], errorCallback);
+
+      if (!shader) {
+        return null;
+      }
+
+      shaders.push(shader);
+    }
+
+    return this.createProgram(gl, shaders, errorCallback);
+  },
+
+  /**
    * Crea un programa.
    * @param  {WebGLRenderingContext} gl Contexto de renderizado WebGL.
    * @param  {WebGLShader[]} shaders Shaders para adjuntar.
@@ -49,7 +106,7 @@ fre.gl = {
    * @return {WebGLProgram} Programa creado. Si falla retorna null.
    */
   createProgram: function (gl, shaders, errorCallback) {
-    var errorFn = errorCallback || this.error;
+    var errorFn = errorCallback || fre.error;
 
     // Crea el programa
     var program = gl.createProgram();
@@ -79,29 +136,6 @@ fre.gl = {
   },
 
   /**
-   * Crea un program con elementos scripts.
-   * @param  {WebGLRenderingContext} gl Contexto de renderizado WebGL.
-   * @param  {String[]} ids Ids de los elementos script.
-   * @param  {Function} [errorCallback] Callback para errores.
-   * @return {WebGLProgram} Programa creado. Si falla retorna null.
-   */
-  createProgramWithScripts: function (gl, ids, errorCallback) {
-    var shaders = [];
-
-    for (var i = 0; i < ids.length; i++) {
-      var shader = this.createShaderWithScript(gl, ids[i], errorCallback);
-
-      if (!shader) {
-        return null;
-      }
-
-      shaders.push(shader);
-    }
-
-    return this.createProgram(gl, shaders, errorCallback);
-  },
-
-  /**
    * Crea un shader con un elemento script.
    * @param  {WebGLRenderingContext} gl Contexto de renderizado WebGL.
    * @param  {String} id El id del elemento script.
@@ -110,14 +144,14 @@ fre.gl = {
    * @return {WebGLShader} Shader creado. Si falla retorna null.
    */
   createShaderWithScript: function (gl, id, type, errorCallback) {
-    var errorFn = errorCallback || this.error;
+    var errorFn = errorCallback || fre.error;
 
     if (typeof type == 'function') {
       errorCallback = type;
       type = undefined;
     }
 
-    // Obtiene el script del shader
+    // Obtiene el elemento script del shader
     var script = document.getElementById(id);
 
     // ¿Existe el script?
@@ -128,7 +162,7 @@ fre.gl = {
 
     var source = script.text;
 
-    // Verifica se pasó un tipo de shader
+    // Verifica si se pasó un tipo de shader
     if (!type) {
       // No se pasó ningún tipo y usa el tipo definido en el script
       if (script.type == 'x-shader/x-vertex') {
@@ -158,7 +192,7 @@ fre.gl = {
    * @return {WebGLShader} Shader creado. Si falla retorna null.
    */
   createShader: function (gl, source, type, errorCallback) {
-    var errorFn = errorCallback || this.error;
+    var errorFn = errorCallback || fre.error;
 
     // Crea el shader
     var shader = gl.createShader(type);
@@ -190,6 +224,39 @@ fre.gl = {
 
     return shader;
   }
+};
+
+},{"../fre":1}],3:[function(require,module,exports){
+'use strict';
+
+fre = require('../fre');
+
+fre.ajax = function (url, loadCallback, progressCallback, errorCallback) {
+  var xhr = new XMLHttpRequest();
+
+  xhr.addEventListener('load', function (evt) {
+    if (loadCallback) {
+      loadCallback(evt, this);
+    }
+  }, false);
+
+  if (progressCallback) {
+    xhr.addEventListener('progress', function (evt) {
+      progressCallback(evt);
+    }, false);
+  }
+
+  if (errorCallback) {
+    xhr.addEventListener('error', function (evt) {
+      errorCallback(evt);
+    }, false);
+  }
+
+  xhr.open('GET', url, true);
+
+  xhr.send();
+
+  return xhr;
 };
 
 },{"../fre":1}]},{},[1]);
