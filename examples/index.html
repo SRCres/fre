@@ -9,18 +9,18 @@
 <script type="text/javascript" src="../dist/fre.js"></script>
 <script type="text/javascript">
 function main() {
-  var sources = [];
+  var shaderSources = [];
 
   fre.ajax('shaders/point.vert', onLoadVert, null, onError);
   fre.ajax('shaders/point.frag', onLoadFrag, null, onError);
 
   function onLoadVert(evt, xhr) {
-    sources[0] = xhr.response;
+    shaderSources[0] = xhr.response;
     loaded();
   }
 
   function onLoadFrag(evt, xhr) {
-    sources[1] = xhr.response;
+    shaderSources[1] = xhr.response;
     loaded();
   }
 
@@ -29,8 +29,8 @@ function main() {
   }
 
   function loaded() {
-    if (sources.length === 2) {
-      initialize(sources);
+    if (shaderSources.length === 2) {
+      initialize(shaderSources);
     }
   }
 }
@@ -44,15 +44,16 @@ function initialize(shaderSources) {
     return;
   }
 
-  var program = fre.gl.createProgramWithSources(gl, shaderSources);
-  if (!program) {
-    console.log('Error en la creación del programa.');
-  }
+  var program = new fre.gl.Program(shaderSources);
+
+  program.attributes.a_Position.set(new Float32Array([0.5, 0.5, 0.0, 1.0]));
+
+  gl.useProgram(program.webGLProgram);
+
+  program.uniforms.u_FragColor.set(new Float32Array([1.0, 1.0, 0.0, 1.0]));
 
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
   gl.clear(gl.COLOR_BUFFER_BIT);
-
-  gl.useProgram(program);
 
   gl.drawArrays(gl.POINTS, 0, 1);
 }
