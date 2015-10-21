@@ -8,14 +8,15 @@
  * @param {WebGLActiveInfo} info Información del attribute.
  */
 fre.gl.Attribute = function (program, info) {
-  var setterSuffix = this.suffixByType(info.type);
-  var TypedArray = this.getTypedArrayByType(info.type);
+  fre.gl.Variable.call(this, info);
 
-  if (!setterSuffix) {
+  var setterName = fre.gl.getSetterNameByType('vertexAttrib', info.type);
+
+  if (!setterName) {
     return null;
   }
 
-  var setterName = 'vertexAttrib' + setterSuffix;
+  var TypedArray = fre.gl.getTypedArrayByType(info.type);
 
   this.index = fre.gl.context.getAttribLocation(program, info.name);
   this.set = setter(setterName, this.index, TypedArray);
@@ -44,11 +45,9 @@ fre.gl.Attribute = function (program, info) {
       fre.gl.context.vertexAttribPointer(index, size, type, normalized, stride, offset);
     }
   }
-
-  fre.gl.Variable.call(this, info);
 };
 
 fre.gl.Attribute.prototype = Object.create(fre.gl.Variable.prototype);
-fre.gl.Attribute.prototype.constructor = fre.gl.Attributes;
+fre.gl.Attribute.prototype.constructor = fre.gl.Attribute;
 
-module.exports = fre.gl.Attributes;
+module.exports = fre.gl.Attribute;

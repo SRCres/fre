@@ -8,14 +8,15 @@
  * @param {WebGLActiveInfo} info Información del uniform.
  */
 fre.gl.Uniform = function (program, info) {
-  var setterSuffix = this.suffixByType(info.type);
-  var TypedArray = this.getTypedArrayByType(info.type);
+  fre.gl.Variable.call(this, info);
 
-  if (!setterSuffix) {
+  var setterName = fre.gl.getSetterNameByType('uniform', info.type);
+
+  if (!setterName) {
     return null;
   }
 
-  var setterName = 'uniform' + setterSuffix;
+  var TypedArray = fre.gl.getTypedArrayByType(info.type);
 
   this.location = fre.gl.context.getUniformLocation(program, info.name);
   this.set = setter(setterName, this.location, TypedArray);
@@ -39,8 +40,6 @@ fre.gl.Uniform = function (program, info) {
       fre.gl.context[name](location, value);
     };
   }
-
-  fre.gl.Variable.call(this, info);
 };
 
 fre.gl.Uniform.prototype = Object.create(fre.gl.Variable.prototype);
