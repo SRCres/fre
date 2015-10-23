@@ -62,7 +62,7 @@ fre.gl.Attribute = function (program, info) {
       stride = stride || 0;
       offset = offset || 0;
 
-      fre.gl.context.bindBuffer(fre.gl.context.ARRAY_BUFFER, buffer);
+      fre.gl.context.bindBuffer(buffer.target, buffer.webGLBuffer);
       fre.gl.context.enableVertexAttribArray(index);
       fre.gl.context.vertexAttribPointer(index, size, type, normalized, stride, offset);
     }
@@ -145,7 +145,7 @@ var fre = require('../fre');
 /**
  * Representa un programa.
  * @constructor
- * @param  {WebGLShader, String[]|HTMLScriptElement} shaders Fuentes de los shaders.
+ * @param  {WebGLShader|String[]|HTMLScriptElement} shaders Fuentes de los shaders.
  */
 fre.gl.Program = function (shadersSources) {
   var program = createProgram.call(this);
@@ -540,6 +540,34 @@ fre.gl = {
 
     fre.error('Error: tipo desconocido 0x' + type.toString(16));
     return '';
+  },
+
+  setUniforms: function (program, data) {
+    var uniforms = program.uniforms,
+        uniformsNames = Object.keys(uniforms);
+
+    for (var i = 0, len = uniformsNames.length; i < len; i++) {
+      var name = uniformsNames[i];
+
+      uniforms[name].set(data[name]);
+    }
+  },
+
+  setAttributes: function (program, data) {
+    var attribs = program.attributes,
+        attribsNames = Object.keys(attribs);
+
+    for (var i = 0, len = attribsNames.length; i < len; i++) {
+      var name = attribsNames[i],
+          attribData = data[name],
+          attrib = attribs[name];
+
+      if (attribData.buffer)  {
+        attrib.setPointer(attribData.buffer, attribData.numComponents);
+      } else {
+        attrib.set(data);
+      }
+    }
   }
 };
 

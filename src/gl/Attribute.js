@@ -40,7 +40,7 @@ fre.gl.Attribute = function (program, info) {
       stride = stride || 0;
       offset = offset || 0;
 
-      fre.gl.context.bindBuffer(fre.gl.context.ARRAY_BUFFER, buffer);
+      fre.gl.context.bindBuffer(buffer.target, buffer.webGLBuffer);
       fre.gl.context.enableVertexAttribArray(index);
       fre.gl.context.vertexAttribPointer(index, size, type, normalized, stride, offset);
     }

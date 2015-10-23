@@ -149,6 +149,34 @@ fre.gl = {
 
     fre.error('Error: tipo desconocido 0x' + type.toString(16));
     return '';
+  },
+
+  setUniforms: function (program, data) {
+    var uniforms = program.uniforms,
+        uniformsNames = Object.keys(uniforms);
+
+    for (var i = 0, len = uniformsNames.length; i < len; i++) {
+      var name = uniformsNames[i];
+
+      uniforms[name].set(data[name]);
+    }
+  },
+
+  setAttributes: function (program, data) {
+    var attribs = program.attributes,
+        attribsNames = Object.keys(attribs);
+
+    for (var i = 0, len = attribsNames.length; i < len; i++) {
+      var name = attribsNames[i],
+          attribData = data[name],
+          attrib = attribs[name];
+
+      if (attribData.buffer)  {
+        attrib.setPointer(attribData.buffer, attribData.numComponents);
+      } else {
+        attrib.set(data);
+      }
+    }
   }
 };
 
