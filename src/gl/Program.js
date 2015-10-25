@@ -5,12 +5,12 @@ var fre = require('../fre');
 /**
  * Representa un programa.
  * @constructor
- * @param  {WebGLShader, String[]|HTMLScriptElement} shaders Fuentes de los shaders.
+ * @param  {WebGLShader|String[]|HTMLScriptElement} shaders Fuentes de los shaders.
  */
 fre.gl.Program = function (shadersSources) {
   var program = createProgram.call(this);
-  this.attributes = new fre.gl.AttributesMap(program);
-  this.uniforms = new fre.gl.UniformsMap(program);
+  this.attributes = new fre.gl.AttributesCollection(program);
+  this.uniforms = new fre.gl.UniformsCollection(program);
   this.webGLProgram = program;
 
   function createProgram() {

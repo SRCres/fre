@@ -1,11 +1,11 @@
 'use strict';
 
 /**
- * Representa un mapa de variables uniform.
+ * Representa una colección de variables uniform.
  * @constructor
  * @param {WebGLProgram} program Programa WebGL.
  */
-fre.gl.UniformsMap = function (program) {
+fre.gl.UniformsCollection = function (program) {
   var num = fre.gl.context.getProgramParameter(program, fre.gl.context.ACTIVE_UNIFORMS);
   for (var i = 0; i < num; i++) {
     var info = fre.gl.context.getActiveUniform(program, i);
@@ -23,4 +23,19 @@ fre.gl.UniformsMap = function (program) {
   }
 };
 
-module.exports = fre.gl.UniformsMap;
+/**
+ * Establece el valor de todos los unifroms.
+ * @param {Object} data Valores a establecer.
+ */
+fre.gl.UniformsCollection.prototype.setCollection = function (data) {
+  var uniformsNames = Object.keys(this);
+
+  for (var i = 0, len = uniformsNames.length; i < len; i++) {
+    var name = uniformsNames[i];
+    var uniform = this[name];
+
+    uniform.set(data[name]);
+  }
+};
+
+module.exports = fre.gl.UniformsCollection;

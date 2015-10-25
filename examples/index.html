@@ -46,24 +46,36 @@ function initialize(shaderSources) {
 
   var program = new fre.gl.Program(shaderSources);
 
-  var points = [0.0, 0.5, -0.5, -0.5, 0.5, -0.5];
-  var TypedArray = fre.gl.getTypedArrayByType(program.attributes.a_Position.type);
+  var points = [
+    0.0, 0.5,
+    -0.5, -0.5,
+    0.5, -0.5
+  ];
+  var TypedArray = fre.gl.Variable.getTypedArrayByType(program.attributes.a_Position.type);
   if (TypedArray) {
     points = new TypedArray(points);
   }
 
   var buffer = new fre.gl.Buffer(gl.ARRAY_BUFFER, points, gl.STATIC_DRAW);
 
-  program.attributes.a_Position.setPointer(buffer.webGLBuffer, 2);
+  var data = {
+    a_Position: {
+      buffer: buffer,
+      numComponents: 2
+    },
+    u_FragColor: [1.0, 1.0, 0.0, 1.0]
+  };
+
+  program.attributes.setCollection(data);
 
   gl.useProgram(program.webGLProgram);
 
-  program.uniforms.u_FragColor.set([1.0, 1.0, 0.0, 1.0]);
+  program.uniforms.setCollection(data);
 
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
   gl.clear(gl.COLOR_BUFFER_BIT);
 
-  gl.drawArrays(gl.TRIANGLES, 0, 3);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, points.length / data.a_Position.numComponents);
 }
 </script>
 </body>

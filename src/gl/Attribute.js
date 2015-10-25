@@ -10,13 +10,13 @@
 fre.gl.Attribute = function (program, info) {
   fre.gl.Variable.call(this, info);
 
-  var setterName = fre.gl.getSetterNameByType('vertexAttrib', info.type);
+  var setterName = fre.gl.Variable.getSetterNameByType('vertexAttrib', info.type);
 
   if (!setterName) {
     return null;
   }
 
-  var TypedArray = fre.gl.getTypedArrayByType(info.type);
+  var TypedArray = fre.gl.Variable.getTypedArrayByType(info.type);
 
   this.index = fre.gl.context.getAttribLocation(program, info.name);
   this.set = setter(setterName, this.index, TypedArray);
@@ -40,7 +40,7 @@ fre.gl.Attribute = function (program, info) {
       stride = stride || 0;
       offset = offset || 0;
 
-      fre.gl.context.bindBuffer(fre.gl.context.ARRAY_BUFFER, buffer);
+      fre.gl.context.bindBuffer(buffer.target, buffer.webGLBuffer);
       fre.gl.context.enableVertexAttribArray(index);
       fre.gl.context.vertexAttribPointer(index, size, type, normalized, stride, offset);
     }

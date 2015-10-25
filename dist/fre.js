@@ -32,13 +32,13 @@ require('./gl/gl');
 fre.gl.Attribute = function (program, info) {
   fre.gl.Variable.call(this, info);
 
-  var setterName = fre.gl.getSetterNameByType('vertexAttrib', info.type);
+  var setterName = fre.gl.Variable.getSetterNameByType('vertexAttrib', info.type);
 
   if (!setterName) {
     return null;
   }
 
-  var TypedArray = fre.gl.getTypedArrayByType(info.type);
+  var TypedArray = fre.gl.Variable.getTypedArrayByType(info.type);
 
   this.index = fre.gl.context.getAttribLocation(program, info.name);
   this.set = setter(setterName, this.index, TypedArray);
@@ -62,7 +62,7 @@ fre.gl.Attribute = function (program, info) {
       stride = stride || 0;
       offset = offset || 0;
 
-      fre.gl.context.bindBuffer(fre.gl.context.ARRAY_BUFFER, buffer);
+      fre.gl.context.bindBuffer(buffer.target, buffer.webGLBuffer);
       fre.gl.context.enableVertexAttribArray(index);
       fre.gl.context.vertexAttribPointer(index, size, type, normalized, stride, offset);
     }
@@ -78,11 +78,11 @@ module.exports = fre.gl.Attribute;
 'use strict';
 
 /**
- * Representa un mapa de variables attribute.
+ * Representa una colección de variables attribute.
  * @constructor
  * @param {WebGLProgram} program Programa WebGL.
  */
-fre.gl.AttributesMap = function (program) {
+fre.gl.AttributesCollection = function (program) {
   var num = fre.gl.context.getProgramParameter(program, fre.gl.context.ACTIVE_ATTRIBUTES);
   for (var i = 0; i < num; i++) {
     var info = fre.gl.context.getActiveAttrib(program, i);
@@ -95,7 +95,28 @@ fre.gl.AttributesMap = function (program) {
   }
 };
 
-module.exports = fre.gl.AttributesMap;
+/**
+ * Establece el valor de todos los attributes.
+ * @param {Object} data Valores a establecer.
+ */
+fre.gl.AttributesCollection.prototype.setCollection = function (data) {
+  var attribsNames = Object.keys(this);
+
+  for (var i = 0, len = attribsNames.length; i < len; i++) {
+    var name = attribsNames[i];
+    var attrib = this[name];
+    var attribData = data[name];
+
+    // ¿Hay un buffer? Establece los datos al puntero.
+    if (attribData.buffer)  {
+      attrib.setPointer(attribData.buffer, attribData.numComponents);
+    } else {
+      attrib.set(attribData);
+    }
+  }
+};
+
+module.exports = fre.gl.AttributesCollection;
 
 },{}],4:[function(require,module,exports){
 'use strict';
@@ -145,12 +166,12 @@ var fre = require('../fre');
 /**
  * Representa un programa.
  * @constructor
- * @param  {WebGLShader, String[]|HTMLScriptElement} shaders Fuentes de los shaders.
+ * @param  {WebGLShader|String[]|HTMLScriptElement} shaders Fuentes de los shaders.
  */
 fre.gl.Program = function (shadersSources) {
   var program = createProgram.call(this);
-  this.attributes = new fre.gl.AttributesMap(program);
-  this.uniforms = new fre.gl.UniformsMap(program);
+  this.attributes = new fre.gl.AttributesCollection(program);
+  this.uniforms = new fre.gl.UniformsCollection(program);
   this.webGLProgram = program;
 
   function createProgram() {
@@ -306,13 +327,13 @@ module.exports = fre.gl.Shader;
 fre.gl.Uniform = function (program, info) {
   fre.gl.Variable.call(this, info);
 
-  var setterName = fre.gl.getSetterNameByType('uniform', info.type);
+  var setterName = fre.gl.Variable.getSetterNameByType('uniform', info.type);
 
   if (!setterName) {
     return null;
   }
 
-  var TypedArray = fre.gl.getTypedArrayByType(info.type);
+  var TypedArray = fre.gl.Variable.getTypedArrayByType(info.type);
 
   this.location = fre.gl.context.getUniformLocation(program, info.name);
   this.set = setter(setterName, this.location, TypedArray);
@@ -347,11 +368,11 @@ module.exports = fre.gl.Uniform;
 'use strict';
 
 /**
- * Representa un mapa de variables uniform.
+ * Representa una colección de variables uniform.
  * @constructor
  * @param {WebGLProgram} program Programa WebGL.
  */
-fre.gl.UniformsMap = function (program) {
+fre.gl.UniformsCollection = function (program) {
   var num = fre.gl.context.getProgramParameter(program, fre.gl.context.ACTIVE_UNIFORMS);
   for (var i = 0; i < num; i++) {
     var info = fre.gl.context.getActiveUniform(program, i);
@@ -369,7 +390,22 @@ fre.gl.UniformsMap = function (program) {
   }
 };
 
-module.exports = fre.gl.UniformsMap;
+/**
+ * Establece el valor de todos los unifroms.
+ * @param {Object} data Valores a establecer.
+ */
+fre.gl.UniformsCollection.prototype.setCollection = function (data) {
+  var uniformsNames = Object.keys(this);
+
+  for (var i = 0, len = uniformsNames.length; i < len; i++) {
+    var name = uniformsNames[i];
+    var uniform = this[name];
+
+    uniform.set(data[name]);
+  }
+};
+
+module.exports = fre.gl.UniformsCollection;
 
 },{}],9:[function(require,module,exports){
 'use strict';
@@ -384,6 +420,126 @@ fre.gl.Variable = function (info) {
   this.name = info.name;
   this.type = info.type;
   this.size = info.size;
+};
+
+/**
+ * Array tipado por tipo de dato.
+ * @param  {Number} type Tipo de dato.
+ * @return {Function} Constructor de un array tipado. Si el tipo
+ * de dato es desconocido retorna null.
+ */
+fre.gl.Variable.getTypedArrayByType = function (type) {
+  var context = fre.gl.context;
+
+  if (type == context.BYTE) {
+    return Int8Array;
+  }
+
+  if (type == context.UNSIGNED_BYTE || type == context.BOOL ||
+      type == context.BOOL_VEC2 || type == context.BOOL_VEC3 ||
+      type == context.BOOL_VEC4) {
+    return Uint8Array;
+  }
+
+  if (type == context.SHORT) {
+    return Int16Array;
+  }
+
+  if (type == context.UNSIGNED_SHORT) {
+    return Uint16Array;
+  }
+
+  if (type == context.INT || type == context.INT_VEC2 ||
+      type == context.INT_VEC3 || type == context.INT_VEC4) {
+    return Int32Array;
+  }
+
+  if (type == context.UNSIGNED_INT) {
+    return Uint32Array;
+  }
+
+  if (type == context.FLOAT || type == context.FLOAT_VEC2 ||
+      type == context.FLOAT_VEC3 || type == context.FLOAT_VEC4 ||
+      type == context.FLOAT_MAT2 || type == context.FLOAT_MAT3 ||
+      type == context.FLOAT_MAT4) {
+    return Float32Array;
+  }
+
+  return null;
+};
+
+/**
+ * Sufijo por tipo de dato.
+ * @param  {String} prefix Prefijo del calificador.
+ * @param  {Number} type Tipo de dato.
+ * @return {String} Sufijo. Si el tipo de dato es desconocido
+ * retorna un string vacío.
+ */
+fre.gl.Variable.getSetterNameByType = function (prefix, type) {
+  var context = fre.gl.context;
+
+  if (type == context.FLOAT) {
+    return prefix + '1fv';
+  }
+
+  if (type == context.FLOAT_VEC2) {
+    return prefix + '2fv';
+  }
+
+  if (type == context.FLOAT_VEC3) {
+    return prefix + '3fv';
+  }
+
+  if (type == context.FLOAT_VEC4) {
+    return prefix + '4fv';
+  }
+
+  if (type == context.INT) {
+    return prefix + '1iv';
+  }
+
+  if (type == context.INT_VEC2) {
+    return prefix + '2iv';
+  }
+
+  if (type == context.INT_VEC3) {
+    return prefix + '3iv';
+  }
+
+  if (type == context.INT_VEC4) {
+    return prefix + '4iv';
+  }
+
+  if (type == context.BOOL) {
+    return prefix + '1iv';
+  }
+
+  if (type == context.BOOL_VEC2) {
+    return prefix + '2iv';
+  }
+
+  if (type == context.BOOL_VEC3) {
+    return prefix + '3iv';
+  }
+
+  if (type == context.BOOL_VEC4) {
+    return prefix + '4iv';
+  }
+
+  if (type == context.FLOAT_MAT2) {
+    return prefix + 'Matrix2fv';
+  }
+
+  if (type == context.FLOAT_MAT3) {
+    return prefix + 'Matrix3fv';
+  }
+
+  if (type == context.FLOAT_MAT4) {
+    return prefix + 'Matrix4fv';
+  }
+
+  fre.error('Error: tipo desconocido 0x' + type.toString(16));
+  return '';
 };
 
 module.exports = fre.gl.Variable;
@@ -420,126 +576,6 @@ fre.gl = {
 
   initProgram: function (shaders) {
     return new gl.Program(shaders);
-  },
-
-  /**
-   * Array tipado por tipo de dato.
-   * @param  {Number} type Tipo de dato.
-   * @return {Function} Constructor de un array tipado. Si el tipo
-   * de dato es desconocido retorna null.
-   */
-  getTypedArrayByType: function (type) {
-    var context = this.context;
-
-    if (type == context.BYTE) {
-      return Int8Array;
-    }
-
-    if (type == context.UNSIGNED_BYTE || type == context.BOOL ||
-        type == context.BOOL_VEC2 || type == context.BOOL_VEC3 ||
-        type == context.BOOL_VEC4) {
-      return Uint8Array;
-    }
-
-    if (type == context.SHORT) {
-      return Int16Array;
-    }
-
-    if (type == context.UNSIGNED_SHORT) {
-      return Uint16Array;
-    }
-
-    if (type == context.INT || type == context.INT_VEC2 ||
-        type == context.INT_VEC3 || type == context.INT_VEC4) {
-      return Int32Array;
-    }
-
-    if (type == context.UNSIGNED_INT) {
-      return Uint32Array;
-    }
-
-    if (type == context.FLOAT || type == context.FLOAT_VEC2 ||
-        type == context.FLOAT_VEC3 || type == context.FLOAT_VEC4 ||
-        type == context.FLOAT_MAT2 || type == context.FLOAT_MAT3 ||
-        type == context.FLOAT_MAT4) {
-      return Float32Array;
-    }
-
-    return null;
-  },
-
-  /**
-   * Sufijo por tipo de dato.
-   * @param  {String} prefix Prefijo del calificador.
-   * @param  {Number} type Tipo de dato.
-   * @return {String} Sufijo. Si el tipo de dato es desconocido
-   * retorna un string vacío.
-   */
-  getSetterNameByType: function (prefix, type) {
-    var context = this.context;
-
-    if (type == context.FLOAT) {
-      return prefix + '1fv';
-    }
-
-    if (type == context.FLOAT_VEC2) {
-      return prefix + '2fv';
-    }
-
-    if (type == context.FLOAT_VEC3) {
-      return prefix + '3fv';
-    }
-
-    if (type == context.FLOAT_VEC4) {
-      return prefix + '4fv';
-    }
-
-    if (type == context.INT) {
-      return prefix + '1iv';
-    }
-
-    if (type == context.INT_VEC2) {
-      return prefix + '2iv';
-    }
-
-    if (type == context.INT_VEC3) {
-      return prefix + '3iv';
-    }
-
-    if (type == context.INT_VEC4) {
-      return prefix + '4iv';
-    }
-
-    if (type == context.BOOL) {
-      return prefix + '1iv';
-    }
-
-    if (type == context.BOOL_VEC2) {
-      return prefix + '2iv';
-    }
-
-    if (type == context.BOOL_VEC3) {
-      return prefix + '3iv';
-    }
-
-    if (type == context.BOOL_VEC4) {
-      return prefix + '4iv';
-    }
-
-    if (type == context.FLOAT_MAT2) {
-      return prefix + 'Matrix2fv';
-    }
-
-    if (type == context.FLOAT_MAT3) {
-      return prefix + 'Matrix3fv';
-    }
-
-    if (type == context.FLOAT_MAT4) {
-      return prefix + 'Matrix4fv';
-    }
-
-    fre.error('Error: tipo desconocido 0x' + type.toString(16));
-    return '';
   }
 };
 
@@ -548,13 +584,13 @@ module.exports = fre.gl;
 require('./Variable');
 require('./Attribute');
 require('./Uniform');
-require('./AttributesMap');
-require('./UniformsMap');
+require('./AttributesCollection');
+require('./UniformsCollection');
 require('./Buffer');
 require('./Program');
 require('./Shader');
 
-},{"../fre":1,"./Attribute":2,"./AttributesMap":3,"./Buffer":4,"./Program":5,"./Shader":6,"./Uniform":7,"./UniformsMap":8,"./Variable":9}],11:[function(require,module,exports){
+},{"../fre":1,"./Attribute":2,"./AttributesCollection":3,"./Buffer":4,"./Program":5,"./Shader":6,"./Uniform":7,"./UniformsCollection":8,"./Variable":9}],11:[function(require,module,exports){
 'use strict';
 
 fre = require('../fre');
