@@ -9,8 +9,8 @@ var fre = require('../fre');
  */
 fre.gl.Program = function (shadersSources) {
   var program = createProgram.call(this);
-  this.attributes = new fre.gl.AttributesMap(program);
-  this.uniforms = new fre.gl.UniformsMap(program);
+  this.attributes = new fre.gl.AttributesCollection(program);
+  this.uniforms = new fre.gl.UniformsCollection(program);
   this.webGLProgram = program;
 
   function createProgram() {

@@ -51,7 +51,7 @@ function initialize(shaderSources) {
     -0.5, -0.5,
     0.5, -0.5
   ];
-  var TypedArray = fre.gl.getTypedArrayByType(program.attributes.a_Position.type);
+  var TypedArray = fre.gl.Variable.getTypedArrayByType(program.attributes.a_Position.type);
   if (TypedArray) {
     points = new TypedArray(points);
   }
@@ -66,11 +66,11 @@ function initialize(shaderSources) {
     u_FragColor: [1.0, 1.0, 0.0, 1.0]
   };
 
-  fre.gl.setAttributes(program, data);
+  program.attributes.setCollection(data);
 
   gl.useProgram(program.webGLProgram);
 
-  fre.gl.setUniforms(program, data);
+  program.uniforms.setCollection(data);
 
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
   gl.clear(gl.COLOR_BUFFER_BIT);

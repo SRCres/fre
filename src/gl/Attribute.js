@@ -10,13 +10,13 @@
 fre.gl.Attribute = function (program, info) {
   fre.gl.Variable.call(this, info);
 
-  var setterName = fre.gl.getSetterNameByType('vertexAttrib', info.type);
+  var setterName = fre.gl.Variable.getSetterNameByType('vertexAttrib', info.type);
 
   if (!setterName) {
     return null;
   }
 
-  var TypedArray = fre.gl.getTypedArrayByType(info.type);
+  var TypedArray = fre.gl.Variable.getTypedArrayByType(info.type);
 
   this.index = fre.gl.context.getAttribLocation(program, info.name);
   this.set = setter(setterName, this.index, TypedArray);
