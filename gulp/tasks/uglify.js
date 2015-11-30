@@ -5,7 +5,7 @@ var browserifyTask = require('./browserify'),
     size = require('gulp-filesize'),
     uglify = require('gulp-uglify');
 
-gulp.task('uglify', function() {
+gulp.task('uglify', function () {
   return browserifyTask(env)
     .pipe(buffer())
     .pipe(uglify())

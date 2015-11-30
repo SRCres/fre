@@ -1,11 +1,17 @@
 'use strict';
 
-window.fre = { version: '0.0.1' };
+window.fre = {
+  version: '0.0.1',
+  error: window.console && window.console.error ? window.console.error.bind(window.console) : function () { }
+};
 
 module.exports = window.fre;
 
-/**
- * @todo Mejorar el punto de entrada para no tener
- * que requerir todos los archivos aquí.
- **/
-require('./renderer/WebGLRenderer');
+// loaders
+require('./loader/loader');
+
+// math
+require('./math/math');
+
+// gl
+require('./gl/gl');
