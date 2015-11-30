@@ -1,18 +1,8 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>fre &raquo; examples</title>
-</head>
-<body onload="main()">
-<canvas id="example" width="800" height="600"></canvas>
-<script type="text/javascript" src="../dist/fre.js"></script>
-<script type="text/javascript">
 function main() {
   var shaderSources = [];
 
-  fre.ajax('shaders/point.vert', onLoadVert, null, onError);
-  fre.ajax('shaders/point.frag', onLoadFrag, null, onError);
+  fre.loader.ajax('shaders/triangle.vert', onLoadVert, null, onError);
+  fre.loader.ajax('shaders/triangle.frag', onLoadFrag, null, onError);
 
   function onLoadVert(evt, xhr) {
     shaderSources[0] = xhr.response;
@@ -36,7 +26,7 @@ function main() {
 }
 
 function initialize(shaderSources) {
-  var canvas = document.getElementById('example'),
+  var canvas = document.getElementById('example-triangle'),
       gl = fre.gl.getWebGLContext(canvas);
 
   if (!gl) {
@@ -46,22 +36,18 @@ function initialize(shaderSources) {
 
   var program = new fre.gl.Program(shaderSources);
 
-  var points = [
-    0.0, 0.5,
-    -0.5, -0.5,
-    0.5, -0.5
-  ];
   var TypedArray = fre.gl.Variable.getTypedArrayByType(program.attributes.a_Position.type);
-  if (TypedArray) {
-    points = new TypedArray(points);
-  }
-
-  var buffer = new fre.gl.Buffer(gl.ARRAY_BUFFER, points, gl.STATIC_DRAW);
+  var vertexArray = new TypedArray([
+    -0.5, -0.5, 0.0,
+    0.5, -0.5, 0.0,
+    0.0, 0.5, 0.0
+  ]);
+  var buffer = new fre.gl.Buffer(gl.ARRAY_BUFFER, vertexArray, gl.STATIC_DRAW);
 
   var data = {
     a_Position: {
       buffer: buffer,
-      numComponents: 2
+      numComponents: 3
     },
     u_FragColor: [1.0, 1.0, 0.0, 1.0]
   };
@@ -72,11 +58,12 @@ function initialize(shaderSources) {
 
   program.uniforms.setCollection(data);
 
-  gl.clearColor(0.0, 0.0, 0.0, 1.0);
-  gl.clear(gl.COLOR_BUFFER_BIT);
+  draw();
 
-  gl.drawArrays(gl.TRIANGLE_STRIP, 0, points.length / data.a_Position.numComponents);
+  function draw() {
+    gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+
+    gl.drawArrays(gl.TRIANGLES, 0, vertexArray.length / data.a_Position.numComponents);
+  }
 }
-</script>
-</body>
-</html>

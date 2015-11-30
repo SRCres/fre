@@ -7,13 +7,11 @@ window.fre = {
 
 module.exports = window.fre;
 
-/**
- * @todo Mejorar el punto de entrada para no tener
- * que requerir todos los archivos aquí.
- **/
-
 // loaders
-require('./loaders/ajax');
+require('./loader/loader');
+
+// math
+require('./math/math');
 
 // gl
 require('./gl/gl');

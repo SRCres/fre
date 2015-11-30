@@ -1,6 +1,6 @@
 {
   "name": "fre.js",
-  "version": "0.0.1",
+  "version": "v1.0.0-alpha",
   "description": "Flatpolys Rendering Engine.",
   "main": "dist/fre.min.js",
   "repository": {

@@ -5,6 +5,10 @@ fre = require('../fre');
 fre.gl = {
   /**
    * Obtiene un contexto WebGL y lo retorna.
+   *
+   * @todo Permitir multiples contextos. Actualmente solo permite
+   * manejar un contexto.
+   *
    * @param  {HTMLCanvasElement} canvas Elemento canvas.
    * @param  {Object} attrs Atributos del contexto.
    * @return {WebGLRenderingContext} Contexto de renderizado
@@ -25,10 +29,6 @@ fre.gl = {
     this.context = context;
 
     return context;
-  },
-
-  initProgram: function (shaders) {
-    return new gl.Program(shaders);
   }
 };
 

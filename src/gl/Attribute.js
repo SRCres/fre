@@ -35,7 +35,7 @@ fre.gl.Attribute = function (program, info) {
   function pointerSetter(index) {
     return function (buffer, size, type, normalized, stride, offset) {
       // Valores por defecto
-      type = type || fre.gl.context.FLOAT;
+      type = type || fre.gl.Variable.getGLTypeByTypedArray(TypedArray);
       normalized = normalized || false;
       stride = stride || 0;
       offset = offset || 0;

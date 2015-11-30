@@ -1,8 +1,6 @@
 'use strict';
 
-fre = require('../fre');
-
-fre.ajax = function (url, loadCallback, progressCallback, errorCallback) {
+fre.loader.ajax = function (url, loadCallback, progressCallback, errorCallback) {
   var xhr = new XMLHttpRequest();
 
   xhr.addEventListener('load', function (evt) {

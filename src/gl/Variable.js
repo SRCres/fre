@@ -59,6 +59,46 @@ fre.gl.Variable.getTypedArrayByType = function (type) {
 };
 
 /**
+ * Tipo de dato por array tipado.
+ * @param  {TypedArray} TypedArray Objeto de array tipado.
+ * @return {Number} Tipo de dato. Si el array tipado
+ * es desconocido retorna null.
+ */
+fre.gl.Variable.getGLTypeByTypedArray = function (TypedArray) {
+  var context = fre.gl.context;
+
+  if (TypedArray == Int8Array) {
+    return fre.gl.context.BYTE;
+  }
+
+  if (TypedArray == Uint8Array) {
+    return fre.gl.context.UNSIGNED_BYTE;
+  }
+
+  if (TypedArray == Int16Array) {
+    return fre.gl.context.SHORT;
+  }
+
+  if (TypedArray == Uint16Array) {
+    return fre.gl.context.UNSIGNED_SHORT;
+  }
+
+  if (TypedArray == Int32Array) {
+    return fre.gl.context.INT;
+  }
+
+  if (TypedArray == Uint32Array) {
+    return fre.gl.context.UNSIGNED_INT;
+  }
+
+  if (TypedArray == Float32Array) {
+    return fre.gl.context.FLOAT;
+  }
+
+  return null;
+};
+
+/**
  * Sufijo por tipo de dato.
  * @param  {String} prefix Prefijo del calificador.
  * @param  {Number} type Tipo de dato.
