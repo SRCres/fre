@@ -47,7 +47,7 @@ function initialize(shaderSources) {
   var data = {
     a_Position: {
       buffer: buffer,
-      numComponents: 3
+      size: 3
     },
     u_ModelMatrix: fre.math.mat4.create(),
     u_FragColor: [1.0, 1.0, 0.0, 1.0]
@@ -86,7 +86,7 @@ function initialize(shaderSources) {
     u_ModelMatrix.set(modelMatrix);
   }
 
-  var n = vertexArray.length / data.a_Position.numComponents;
+  var n = vertexArray.length / data.a_Position.size;
   var lastTime;
 
   function tick(timestamp) {

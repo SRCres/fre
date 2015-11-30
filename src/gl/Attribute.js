@@ -33,16 +33,16 @@ fre.gl.Attribute = function (program, info) {
   }
 
   function pointerSetter(index) {
-    return function (buffer, size, type, normalized, stride, offset) {
+    return function (attrData) {
       // Valores por defecto
-      type = type || fre.gl.Variable.getGLTypeByTypedArray(TypedArray);
-      normalized = normalized || false;
-      stride = stride || 0;
-      offset = offset || 0;
+      var type = attrData.type || fre.gl.Variable.getGLTypeByTypedArray(TypedArray);
+      var normalized = attrData.normalized || false;
+      var stride = attrData.stride || 0;
+      var offset = attrData.offset || 0;
 
-      fre.gl.context.bindBuffer(buffer.target, buffer.webGLBuffer);
+      fre.gl.context.bindBuffer(attrData.buffer.target, attrData.buffer.webGLBuffer);
       fre.gl.context.enableVertexAttribArray(index);
-      fre.gl.context.vertexAttribPointer(index, size, type, normalized, stride, offset);
+      fre.gl.context.vertexAttribPointer(index, attrData.size, type, normalized, stride, offset);
     }
   }
 };

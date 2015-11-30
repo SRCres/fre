@@ -32,7 +32,7 @@ fre.gl.AttributesCollection.prototype.setCollection = function (data) {
 
     // ¿Hay un buffer? Establece los datos al puntero.
     if (attribData.buffer)  {
-      attrib.setPointer(attribData.buffer, attribData.numComponents);
+      attrib.setPointer(attribData);
     } else {
       attrib.set(attribData);
     }

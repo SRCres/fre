@@ -47,7 +47,7 @@ function initialize(shaderSources) {
   var data = {
     a_Position: {
       buffer: buffer,
-      numComponents: 3
+      size: 3
     },
     u_FragColor: [1.0, 1.0, 0.0, 1.0]
   };
@@ -64,6 +64,6 @@ function initialize(shaderSources) {
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT);
 
-    gl.drawArrays(gl.TRIANGLES, 0, vertexArray.length / data.a_Position.numComponents);
+    gl.drawArrays(gl.TRIANGLES, 0, vertexArray.length / data.a_Position.size);
   }
 }
