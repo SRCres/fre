@@ -34,7 +34,7 @@ function initialize(shaderSources) {
     return;
   }
 
-  var program = new fre.gl.Program(shaderSources);
+  var program = new fre.gl.Program(gl, shaderSources);
 
   var data = {
     a_Position: [0.0, 0.0, 0.0, 1.0],

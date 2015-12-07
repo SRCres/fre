@@ -5,10 +5,11 @@ var fre = require('../fre');
 /**
  * Representa un shader.
  * @constructor
+ * @param {WebGLRenderingContext} gl Context de renderizado WebGL.
  * @param {String|HTMLScriptElement} source Fuente del shader.
  * @param {Number} [type] Tipo de shader.
  */
-fre.gl.Shader = function (source, type) {
+fre.gl.Shader = function (gl, source, type) {
   if (source instanceof HTMLScriptElement) {
     this.webGLShader = createShaderWithScript(source, type);
   } else {
@@ -17,7 +18,7 @@ fre.gl.Shader = function (source, type) {
 
   function createShader(source, type) {
     // Crea el shader
-    var shader = fre.gl.context.createShader(type);
+    var shader = gl.createShader(type);
 
     // Verifica la creación
     if (!shader) {
@@ -26,20 +27,20 @@ fre.gl.Shader = function (source, type) {
     }
 
     // Carga la fuente del shader
-    fre.gl.context.shaderSource(shader, source);
+    gl.shaderSource(shader, source);
 
     // Compila el shader
-    fre.gl.context.compileShader(shader);
+    gl.compileShader(shader);
 
     // Verifica el estado de la compilación
-    var compiled = fre.gl.context.getShaderParameter(shader, fre.gl.context.COMPILE_STATUS);
+    var compiled = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
     if (!compiled) {
       // Algo salió mal y obtiene el error
-      var log = fre.gl.context.getShaderInfoLog(shader, fre.gl.context.COMPILE_STATUS);
+      var log = gl.getShaderInfoLog(shader, gl.COMPILE_STATUS);
       fre.error('Error al compilar el shader: ' + log);
 
       // Elimina el shader
-      fre.gl.context.deleteShader(shader);
+      gl.deleteShader(shader);
 
       return null;
     }
@@ -60,16 +61,16 @@ fre.gl.Shader = function (source, type) {
     if (!type) {
       // No se pasó ningún tipo y usa el tipo definido en el script
       if (script.type == 'x-shader/x-vertex') {
-        type = fre.gl.context.VERTEX_SHADER;
+        type = gl.VERTEX_SHADER;
       }
 
       if (script.type == 'x-shader/x-fragment') {
-        type = fre.gl.context.FRAGMENT_SHADER;
+        type = gl.FRAGMENT_SHADER;
       }
     }
 
     // Verifica si es un tipo conocido
-    if (type !== fre.gl.context.VERTEX_SHADER && type !== fre.gl.context.FRAGMENT_SHADER) {
+    if (type !== gl.VERTEX_SHADER && type !== gl.FRAGMENT_SHADER) {
       fre.error('Error: tipo de shader desconocido.');
       return null;
     }

@@ -34,9 +34,9 @@ function initialize(shaderSources) {
     return;
   }
 
-  var program = new fre.gl.Program(shaderSources);
+  var program = new fre.gl.Program(gl, shaderSources);
 
-  var TypedArray = fre.gl.Variable.getTypedArrayByType(program.attributes.a_Position.type);
+  var TypedArray = fre.gl.Variable.getTypedArrayByType(gl, program.attributes.a_Position.type);
   var vertexColorArray = new TypedArray([
      0.0,  0.5, -0.4, 0.0, 1.0, 1.0, // Cian fondo
     -0.5, -0.5, -0.4, 0.0, 1.0, 1.0,
@@ -50,7 +50,7 @@ function initialize(shaderSources) {
     -0.5, -0.5,  0.0, 1.0, 0.0, 1.0,
      0.5, -0.5,  0.0, 1.0, 0.0, 1.0
   ]);
-  var buffer = new fre.gl.Buffer(gl.ARRAY_BUFFER, vertexColorArray, gl.STATIC_DRAW);
+  var buffer = new fre.gl.Buffer(gl, gl.ARRAY_BUFFER, vertexColorArray, gl.STATIC_DRAW);
 
   var FSIZE = vertexColorArray.BYTES_PER_ELEMENT;
 

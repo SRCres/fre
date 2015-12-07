@@ -3,7 +3,6 @@
 /**
  * Representa una variable
  * @constructor
- * @param {WebGLRenderingContext} gl Contexto de renderizado WebGL.
  * @param {WebGLActiveInfo} info Información de la variable.
  */
 fre.gl.Variable = function (info) {
@@ -14,12 +13,13 @@ fre.gl.Variable = function (info) {
 
 /**
  * Array tipado por tipo de dato.
+ * @param {WebGLRenderingContext} gl Context de renderizado WebGL.
  * @param  {Number} type Tipo de dato.
  * @return {Function} Constructor de un array tipado. Si el tipo
  * de dato es desconocido retorna null.
  */
-fre.gl.Variable.getTypedArrayByType = function (type) {
-  var context = fre.gl.context;
+fre.gl.Variable.getTypedArrayByType = function (gl, type) {
+  var context = gl;
 
   if (type == context.BYTE) {
     return Int8Array;
@@ -60,39 +60,40 @@ fre.gl.Variable.getTypedArrayByType = function (type) {
 
 /**
  * Tipo de dato por array tipado.
+ * @param {WebGLRenderingContext} gl Context de renderizado WebGL.
  * @param  {TypedArray} TypedArray Objeto de array tipado.
  * @return {Number} Tipo de dato. Si el array tipado
  * es desconocido retorna null.
  */
-fre.gl.Variable.getGLTypeByTypedArray = function (TypedArray) {
-  var context = fre.gl.context;
+fre.gl.Variable.getGLTypeByTypedArray = function (gl, TypedArray) {
+  var context = gl;
 
   if (TypedArray == Int8Array) {
-    return fre.gl.context.BYTE;
+    return gl.BYTE;
   }
 
   if (TypedArray == Uint8Array) {
-    return fre.gl.context.UNSIGNED_BYTE;
+    return gl.UNSIGNED_BYTE;
   }
 
   if (TypedArray == Int16Array) {
-    return fre.gl.context.SHORT;
+    return gl.SHORT;
   }
 
   if (TypedArray == Uint16Array) {
-    return fre.gl.context.UNSIGNED_SHORT;
+    return gl.UNSIGNED_SHORT;
   }
 
   if (TypedArray == Int32Array) {
-    return fre.gl.context.INT;
+    return gl.INT;
   }
 
   if (TypedArray == Uint32Array) {
-    return fre.gl.context.UNSIGNED_INT;
+    return gl.UNSIGNED_INT;
   }
 
   if (TypedArray == Float32Array) {
-    return fre.gl.context.FLOAT;
+    return gl.FLOAT;
   }
 
   return null;
@@ -100,13 +101,14 @@ fre.gl.Variable.getGLTypeByTypedArray = function (TypedArray) {
 
 /**
  * Sufijo por tipo de dato.
+ * @param {WebGLRenderingContext} gl Context de renderizado WebGL.
  * @param  {String} prefix Prefijo del calificador.
  * @param  {Number} type Tipo de dato.
  * @return {String} Sufijo. Si el tipo de dato es desconocido
  * retorna un string vacío.
  */
-fre.gl.Variable.getSetterNameByType = function (prefix, type) {
-  var context = fre.gl.context;
+fre.gl.Variable.getSetterNameByType = function (gl, prefix, type) {
+  var context = gl;
 
   if (type == context.FLOAT) {
     return prefix + '1fv';

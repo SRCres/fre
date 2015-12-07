@@ -3,17 +3,18 @@
 /**
  * Representa una colección de variables attribute.
  * @constructor
+ * @param {WebGLRenderingContext} gl Context de renderizado WebGL.
  * @param {WebGLProgram} program Programa WebGL.
  */
-fre.gl.AttributesCollection = function (program) {
-  var num = fre.gl.context.getProgramParameter(program, fre.gl.context.ACTIVE_ATTRIBUTES);
+fre.gl.AttributesCollection = function (gl, program) {
+  var num = gl.getProgramParameter(program, gl.ACTIVE_ATTRIBUTES);
   for (var i = 0; i < num; i++) {
-    var info = fre.gl.context.getActiveAttrib(program, i);
+    var info = gl.getActiveAttrib(program, i);
     if (!info) {
       break;
     }
 
-    var attribute = new fre.gl.Attribute(program, info);
+    var attribute = new fre.gl.Attribute(gl, program, info);
     this[info.name] = attribute;
   }
 };

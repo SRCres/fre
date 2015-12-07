@@ -4,21 +4,22 @@
  * Representa una variable con calificador uniform.
  * @constructor
  * @augments {fre.gl.Variable}
+ * @param {WebGLRenderingContext} gl Context de renderizado WebGL.
  * @param {WebGLProgram} program Programa WebGL.
  * @param {WebGLActiveInfo} info Información del uniform.
  */
-fre.gl.Uniform = function (program, info) {
+fre.gl.Uniform = function (gl, program, info) {
   fre.gl.Variable.call(this, info);
 
-  var setterName = fre.gl.Variable.getSetterNameByType('uniform', info.type);
+  var setterName = fre.gl.Variable.getSetterNameByType(gl, 'uniform', info.type);
 
   if (!setterName) {
     return null;
   }
 
-  var TypedArray = fre.gl.Variable.getTypedArrayByType(info.type);
+  var TypedArray = fre.gl.Variable.getTypedArrayByType(gl, info.type);
 
-  this.location = fre.gl.context.getUniformLocation(program, info.name);
+  this.location = gl.getUniformLocation(program, info.name);
   this.set = setter(setterName, this.location, TypedArray);
 
   function setter(name, location, TypedArray) {
@@ -28,7 +29,7 @@ fre.gl.Uniform = function (program, info) {
           value = new TypedArray(value);
         }
 
-        fre.gl.context[name](location, transpose, value);
+        gl[name](location, transpose, value);
       };
     }
 
@@ -37,7 +38,7 @@ fre.gl.Uniform = function (program, info) {
         value = new TypedArray(value);
       }
 
-      fre.gl.context[name](location, value);
+      gl[name](location, value);
     };
   }
 };

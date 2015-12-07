@@ -34,15 +34,15 @@ function initialize(shaderSources) {
     return;
   }
 
-  var program = new fre.gl.Program(shaderSources);
+  var program = new fre.gl.Program(gl, shaderSources);
 
-  var TypedArray = fre.gl.Variable.getTypedArrayByType(program.attributes.a_Position.type);
+  var TypedArray = fre.gl.Variable.getTypedArrayByType(gl, program.attributes.a_Position.type);
   var vertexArray = new TypedArray([
     -0.5, -0.5, 0.0,
     0.5, -0.5, 0.0,
     0.0, 0.5, 0.0
   ]);
-  var buffer = new fre.gl.Buffer(gl.ARRAY_BUFFER, vertexArray, gl.STATIC_DRAW);
+  var buffer = new fre.gl.Buffer(gl, gl.ARRAY_BUFFER, vertexArray, gl.STATIC_DRAW);
 
   var data = {
     a_Position: {

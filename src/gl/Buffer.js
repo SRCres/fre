@@ -5,12 +5,13 @@ var fre = require('../fre');
 /**
  * Representa un buffer.
  * @constructor
+ * @param {WebGLRenderingContext} gl Context de renderizado WebGL.
  * @param {Number} target Buffer objetivo.
  * @param {Number | ArrayBuffer} data Array de puntos o tamaño del buffer.
  * @param {Number} usage Uso del buffer.
  */
-fre.gl.Buffer = function (target, data, usage) {
-  var buffer = fre.gl.context.createBuffer();
+fre.gl.Buffer = function (gl, target, data, usage) {
+  var buffer = gl.createBuffer();
 
   // Verifica la creación
   if (!buffer) {
@@ -18,8 +19,8 @@ fre.gl.Buffer = function (target, data, usage) {
     return null;
   }
 
-  fre.gl.context.bindBuffer(target, buffer);
-  fre.gl.context.bufferData(target, data, usage);
+  gl.bindBuffer(target, buffer);
+  gl.bufferData(target, data, usage);
 
   this.target = target;
   this.webGLBuffer = buffer;
@@ -31,8 +32,8 @@ fre.gl.Buffer = function (target, data, usage) {
  * @param {ArrayBuffer} data Array de puntos.
  */
 fre.gl.Buffer.prototype.set = function (offset, data) {
-  fre.gl.context.bindBuffer(this.target, this.webGLBuffer);
-  fre.gl.context.bufferSubData(this.target, offset, data);
+  gl.bindBuffer(this.target, this.webGLBuffer);
+  gl.bufferSubData(this.target, offset, data);
 };
 
 module.exports = fre.gl.Buffer;

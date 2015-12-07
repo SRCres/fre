@@ -3,12 +3,13 @@
 /**
  * Representa una colección de variables uniform.
  * @constructor
+ * @param {WebGLRenderingContext} gl Context de renderizado WebGL.
  * @param {WebGLProgram} program Programa WebGL.
  */
-fre.gl.UniformsCollection = function (program) {
-  var num = fre.gl.context.getProgramParameter(program, fre.gl.context.ACTIVE_UNIFORMS);
+fre.gl.UniformsCollection = function (gl, program) {
+  var num = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
   for (var i = 0; i < num; i++) {
-    var info = fre.gl.context.getActiveUniform(program, i);
+    var info = gl.getActiveUniform(program, i);
     if (!info) {
       break;
     }
@@ -18,7 +19,7 @@ fre.gl.UniformsCollection = function (program) {
       name = name.substr(0, name.length - 3);
     }
 
-    var uniform = new fre.gl.Uniform(program, info);
+    var uniform = new fre.gl.Uniform(gl, program, info);
     this[name] = uniform;
   }
 };

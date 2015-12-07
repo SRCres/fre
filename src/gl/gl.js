@@ -6,9 +6,6 @@ fre.gl = {
   /**
    * Obtiene un contexto WebGL y lo retorna.
    *
-   * @todo Permitir multiples contextos. Actualmente solo permite
-   * manejar un contexto.
-   *
    * @param  {HTMLCanvasElement} canvas Elemento canvas.
    * @param  {Object} attrs Atributos del contexto.
    * @return {WebGLRenderingContext} Contexto de renderizado
@@ -25,8 +22,6 @@ fre.gl = {
     if (!context) {
       canvas.innerText = 'No se puede inicializar WebGL. Tu navegador no es compatible.';
     }
-
-    this.context = context;
 
     return context;
   }
