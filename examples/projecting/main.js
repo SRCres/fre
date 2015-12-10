@@ -35,6 +35,8 @@ function projectionContext(suffix, shaderSources) {
     return;
   }
 
+  gl.enable(gl.DEPTH_TEST);
+
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
 
   var program = new fre.gl.Program(gl, shaderSources);
@@ -136,7 +138,7 @@ function projectionContext(suffix, shaderSources) {
 
     program.uniforms.u_MvpMatrix.set(data.u_MvpMatrix);
 
-    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     gl.drawArrays(gl.TRIANGLES, 0, n);
   }
