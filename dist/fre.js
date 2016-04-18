@@ -1,644 +1,852 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 'use strict';
 
-window.fre = {
-  version: '0.0.1',
-  error: window.console && window.console.error ? window.console.error.bind(window.console) : function () { }
-};
+window.fre = Object.create(null, {
+  version: {
+    value: '0.0.1',
+    enumerable: true
+  },
+  error: {
+    value: function () {
+      return window.console && window.console.error ?
+        window.console.error.bind(window.console) :
+        function () { };
+    },
+    enumerable: true
+  },
+  loader: {
+    value: require('./loader/loader'),
+    enumerable: true
+  },
+  math: {
+    value: require('./math/math'),
+    enumerable: true
+  },
+  gl: {
+    value: require('./gl/gl'),
+    enumerable: true
+  }
+});
 
-module.exports = window.fre;
-
-// loaders
-require('./loader/loader');
-
-// math
-require('./math/math');
-
-// gl
-require('./gl/gl');
-
-},{"./gl/gl":10,"./loader/loader":12,"./math/math":13}],2:[function(require,module,exports){
+},{"./gl/gl":4,"./loader/loader":9,"./math/math":10}],2:[function(require,module,exports){
 'use strict';
 
-/**
- * Representa una variable con calificador attribute.
- * @constructor
- * @augments {fre.gl.Variable}
- * @param {WebGLRenderingContext} gl Context de renderizado WebGL.
- * @param {WebGLProgram} program Programa WebGL.
- * @param {WebGLActiveInfo} info Información del attribute.
- */
-fre.gl.Attribute = function (gl, program, info) {
-  fre.gl.Variable.call(this, info);
-
-  var setterName = fre.gl.Variable.getSetterNameByType(gl, 'vertexAttrib', info.type);
-
-  if (!setterName) {
-    return null;
+var attribute = Object.create(null, {
+  name: {
+    writable: true,
+    enumerable: true
+  },
+  type: {
+    writable: true,
+    enumerable: true
+  },
+  size: {
+    writable: true,
+    enumerable: true
+  },
+  index: {
+    writable: true,
+    enumerable: true
+  },
+  set: {
+    writable: true,
+    enumerable: true
+  },
+  setPointer: {
+    writable: true,
+    enumerable: true
   }
+});
 
-  var TypedArray = fre.gl.Variable.getTypedArrayByType(gl, info.type);
-
-  this.index = gl.getAttribLocation(program, info.name);
-  this.set = setter(setterName, this.index, TypedArray);
-  this.setPointer = pointerSetter(this.index);
-
-  function setter(name, index, TypedArray) {
-    return function (value) {
-      if (TypedArray) {
-        value = new TypedArray(value);
-      }
-
-      gl[name](index, value);
-    };
-  }
-
-  function pointerSetter(index) {
-    return function (attrData) {
-      // Valores por defecto
-      var type = attrData.type || fre.gl.Variable.getGLTypeByTypedArray(gl, TypedArray);
-      var normalized = attrData.normalized || false;
-      var stride = attrData.stride || 0;
-      var offset = attrData.offset || 0;
-
-      gl.bindBuffer(attrData.buffer.target, attrData.buffer.webGLBuffer);
-      gl.enableVertexAttribArray(index);
-      gl.vertexAttribPointer(index, attrData.size, type, normalized, stride, offset);
-    }
-  }
-};
-
-fre.gl.Attribute.prototype = Object.create(fre.gl.Variable.prototype);
-fre.gl.Attribute.prototype.constructor = fre.gl.Attribute;
-
-module.exports = fre.gl.Attribute;
+module.exports = attribute;
 
 },{}],3:[function(require,module,exports){
 'use strict';
 
-/**
- * Representa una colección de variables attribute.
- * @constructor
- * @param {WebGLRenderingContext} gl Context de renderizado WebGL.
- * @param {WebGLProgram} program Programa WebGL.
- */
-fre.gl.AttributesCollection = function (gl, program) {
-  var num = gl.getProgramParameter(program, gl.ACTIVE_ATTRIBUTES);
-  for (var i = 0; i < num; i++) {
-    var info = gl.getActiveAttrib(program, i);
-    if (!info) {
-      break;
-    }
-
-    var attribute = new fre.gl.Attribute(gl, program, info);
-    this[info.name] = attribute;
+var buffer = Object.create(null, {
+  target: {
+    writable: true,
+    enumerable: true
+  },
+  webGLBuffer: {
+    writable: true,
+    enumerable: true
+  },
+  set: {
+    value: function (offset, value) {
+      webGL.bindBuffer(this.target, this.webGLBuffer);
+      webGL.bufferSubData(this.target, offset, value);
+    },
+    enumerable: true
   }
-};
+});
 
-/**
- * Establece el valor de todos los attributes.
- * @param {Object} data Valores a establecer.
- */
-fre.gl.AttributesCollection.prototype.setCollection = function (data) {
-  var attribsNames = Object.keys(this);
-
-  for (var i = 0, len = attribsNames.length; i < len; i++) {
-    var name = attribsNames[i];
-    var attrib = this[name];
-    var attribData = data[name];
-
-    // ¿Hay un buffer? Establece los datos al puntero.
-    if (attribData.buffer)  {
-      attrib.setPointer(attribData);
-    } else {
-      attrib.set(attribData);
-    }
-  }
-};
-
-module.exports = fre.gl.AttributesCollection;
+module.exports = buffer;
 
 },{}],4:[function(require,module,exports){
 'use strict';
 
-var fre = require('../fre');
-
-/**
- * Representa un buffer.
- * @constructor
- * @param {WebGLRenderingContext} gl Context de renderizado WebGL.
- * @param {Number} target Buffer objetivo.
- * @param {Number | ArrayBuffer} data Array de puntos o tamaño del buffer.
- * @param {Number} usage Uso del buffer.
- */
-fre.gl.Buffer = function (gl, target, data, usage) {
-  var buffer = gl.createBuffer();
-
-  // Verifica la creación
-  if (!buffer) {
-    fre.error('Incapaz de crear el buffer.');
-    return null;
-  }
-
-  gl.bindBuffer(target, buffer);
-  gl.bufferData(target, data, usage);
-
-  this.target = target;
-  this.webGLBuffer = buffer;
-};
-
-/**
- * Establece datos en el buffer.
- * @param {Number} offset Offset en el WebGLBuffer.
- * @param {ArrayBuffer} data Array de puntos.
- */
-fre.gl.Buffer.prototype.set = function (offset, data) {
-  gl.bindBuffer(this.target, this.webGLBuffer);
-  gl.bufferSubData(this.target, offset, data);
-};
-
-module.exports = fre.gl.Buffer;
-
-},{"../fre":1}],5:[function(require,module,exports){
-'use strict';
-
-var fre = require('../fre');
-
-/**
- * Representa un programa.
- * @constructor
- * @param {WebGLRenderingContext} gl Context de renderizado WebGL.
- * @param  {WebGLShader|String[]|HTMLScriptElement} shaders Fuentes de los shaders.
- */
-fre.gl.Program = function (gl, shadersSources) {
-  var program = createProgram.call(this);
-  this.attributes = new fre.gl.AttributesCollection(gl, program);
-  this.uniforms = new fre.gl.UniformsCollection(gl, program);
-  this.webGLProgram = program;
-
-  function createProgram() {
-    this.shaders = [];
-
-    for (var i = 0; i < shadersSources.length; i++) {
-      var source = shadersSources[i];
-      var type = fre.gl.Shader.types[i];
-      var shader;
-
-      if (source instanceof fre.gl.Shader) {
-        shader = source;
-      } else if (typeof source == 'string') {
-        shader = new fre.gl.Shader(gl, source, type);
-      } else {
-        shader = new fre.gl.Shader(gl, source);
-      }
-
-      if (!shader) {
-        return null;
-      }
-
-      this.shaders.push(shader);
-    }
-
-    // Crea el programa
-    var program = gl.createProgram();
-
-    // Adjunta los shaders al programa
-    this.shaders.forEach(function (shader) {
-      gl.attachShader(program, shader.webGLShader);
-    });
-
-    // Vincula el programa
-    gl.linkProgram(program);
-
-    // Verifica el estado del vínculo
-    var linked = gl.getProgramParameter(program, gl.LINK_STATUS);
-    if (!linked) {
-      // Algo salió mal y obtiene el error
-      var log = gl.getProgramInfoLog(program);
-      fre.error('Error al vincular el programa: ' + log);
-
-      // Elimina el programa
-      gl.deleteProgram(program);
-
-      return null;
-    }
-
-    return program;
-  }
-};
-
-module.exports = fre.gl.Program;
-
-},{"../fre":1}],6:[function(require,module,exports){
-'use strict';
-
-var fre = require('../fre');
-
-/**
- * Representa un shader.
- * @constructor
- * @param {WebGLRenderingContext} gl Context de renderizado WebGL.
- * @param {String|HTMLScriptElement} source Fuente del shader.
- * @param {Number} [type] Tipo de shader.
- */
-fre.gl.Shader = function (gl, source, type) {
-  if (source instanceof HTMLScriptElement) {
-    this.webGLShader = createShaderWithScript(source, type);
-  } else {
-    this.webGLShader = createShader(source, type);
-  }
-
-  function createShader(source, type) {
-    // Crea el shader
-    var shader = gl.createShader(type);
-
-    // Verifica la creación
-    if (!shader) {
-      fre.error('Incapaz de crear el shader.');
-      return null;
-    }
-
-    // Carga la fuente del shader
-    gl.shaderSource(shader, source);
-
-    // Compila el shader
-    gl.compileShader(shader);
-
-    // Verifica el estado de la compilación
-    var compiled = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
-    if (!compiled) {
-      // Algo salió mal y obtiene el error
-      var log = gl.getShaderInfoLog(shader, gl.COMPILE_STATUS);
-      fre.error('Error al compilar el shader: ' + log);
-
-      // Elimina el shader
-      gl.deleteShader(shader);
-
-      return null;
-    }
-
-    return shader;
-  }
-
-  function createShaderWithScript(script, type) {
-    // ¿Existe el script?
-    if (!script) {
-      fre.error('Error: elemento script desconocido.');
-      return null;
-    }
-
-    var source = script.text;
-
-    // Verifica si se pasó un tipo de shader
-    if (!type) {
-      // No se pasó ningún tipo y usa el tipo definido en el script
-      if (script.type == 'x-shader/x-vertex') {
-        type = gl.VERTEX_SHADER;
-      }
-
-      if (script.type == 'x-shader/x-fragment') {
-        type = gl.FRAGMENT_SHADER;
-      }
-    }
-
-    // Verifica si es un tipo conocido
-    if (type !== gl.VERTEX_SHADER && type !== gl.FRAGMENT_SHADER) {
-      fre.error('Error: tipo de shader desconocido.');
-      return null;
-    }
-
-    return createShader(source, type);
-  }
-};
-
-fre.gl.Shader.FRAGMENT_SHADER = 0x8B30;
-fre.gl.Shader.VERTEX_SHADER = 0x8B31;
-fre.gl.Shader.types = [fre.gl.Shader.VERTEX_SHADER, fre.gl.Shader.FRAGMENT_SHADER];
-
-module.exports = fre.gl.Shader;
-
-},{"../fre":1}],7:[function(require,module,exports){
-'use strict';
-
-/**
- * Representa una variable con calificador uniform.
- * @constructor
- * @augments {fre.gl.Variable}
- * @param {WebGLRenderingContext} gl Context de renderizado WebGL.
- * @param {WebGLProgram} program Programa WebGL.
- * @param {WebGLActiveInfo} info Información del uniform.
- */
-fre.gl.Uniform = function (gl, program, info) {
-  fre.gl.Variable.call(this, info);
-
-  var setterName = fre.gl.Variable.getSetterNameByType(gl, 'uniform', info.type);
-
-  if (!setterName) {
-    return null;
-  }
-
-  var TypedArray = fre.gl.Variable.getTypedArrayByType(gl, info.type);
-
-  this.location = gl.getUniformLocation(program, info.name);
-  this.set = setter(setterName, this.location, TypedArray);
-
-  function setter(name, location, TypedArray) {
-    if (/^uniformMatrix[2-4][fi]v$/.test(name)) {
-      return function (value, transpose) {
-        if (TypedArray) {
-          value = new TypedArray(value);
-        }
-
-        gl[name](location, transpose, value);
-      };
-    }
-
-    return function (value) {
-      if (TypedArray) {
-        value = new TypedArray(value);
-      }
-
-      gl[name](location, value);
-    };
-  }
-};
-
-fre.gl.Uniform.prototype = Object.create(fre.gl.Variable.prototype);
-fre.gl.Uniform.prototype.constructor = fre.gl.Uniform;
-
-module.exports = fre.gl.Uniform;
-
-},{}],8:[function(require,module,exports){
-'use strict';
-
-/**
- * Representa una colección de variables uniform.
- * @constructor
- * @param {WebGLRenderingContext} gl Context de renderizado WebGL.
- * @param {WebGLProgram} program Programa WebGL.
- */
-fre.gl.UniformsCollection = function (gl, program) {
-  var num = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
-  for (var i = 0; i < num; i++) {
-    var info = gl.getActiveUniform(program, i);
-    if (!info) {
-      break;
-    }
-    var name = info.name;
-    // Quita el sufijo de array
-    if (name.substr(-3) === "[0]") {
-      name = name.substr(0, name.length - 3);
-    }
-
-    var uniform = new fre.gl.Uniform(gl, program, info);
-    this[name] = uniform;
-  }
-};
-
-/**
- * Establece el valor de todos los unifroms.
- * @param {Object} data Valores a establecer.
- */
-fre.gl.UniformsCollection.prototype.setCollection = function (data) {
-  var uniformsNames = Object.keys(this);
-
-  for (var i = 0, len = uniformsNames.length; i < len; i++) {
-    var name = uniformsNames[i];
-    var uniform = this[name];
-
-    uniform.set(data[name]);
-  }
-};
-
-module.exports = fre.gl.UniformsCollection;
-
-},{}],9:[function(require,module,exports){
-'use strict';
-
-/**
- * Representa una variable
- * @constructor
- * @param {WebGLActiveInfo} info Información de la variable.
- */
-fre.gl.Variable = function (info) {
-  this.name = info.name;
-  this.type = info.type;
-  this.size = info.size;
-};
-
-/**
- * Array tipado por tipo de dato.
- * @param {WebGLRenderingContext} gl Context de renderizado WebGL.
- * @param  {Number} type Tipo de dato.
- * @return {Function} Constructor de un array tipado. Si el tipo
- * de dato es desconocido retorna null.
- */
-fre.gl.Variable.getTypedArrayByType = function (gl, type) {
-  var context = gl;
-
-  if (type == context.BYTE) {
-    return Int8Array;
-  }
-
-  if (type == context.UNSIGNED_BYTE || type == context.BOOL ||
-      type == context.BOOL_VEC2 || type == context.BOOL_VEC3 ||
-      type == context.BOOL_VEC4) {
-    return Uint8Array;
-  }
-
-  if (type == context.SHORT) {
-    return Int16Array;
-  }
-
-  if (type == context.UNSIGNED_SHORT) {
-    return Uint16Array;
-  }
-
-  if (type == context.INT || type == context.INT_VEC2 ||
-      type == context.INT_VEC3 || type == context.INT_VEC4) {
-    return Int32Array;
-  }
-
-  if (type == context.UNSIGNED_INT) {
-    return Uint32Array;
-  }
-
-  if (type == context.FLOAT || type == context.FLOAT_VEC2 ||
-      type == context.FLOAT_VEC3 || type == context.FLOAT_VEC4 ||
-      type == context.FLOAT_MAT2 || type == context.FLOAT_MAT3 ||
-      type == context.FLOAT_MAT4) {
-    return Float32Array;
-  }
-
-  return null;
-};
-
-/**
- * Tipo de dato por array tipado.
- * @param {WebGLRenderingContext} gl Context de renderizado WebGL.
- * @param  {TypedArray} TypedArray Objeto de array tipado.
- * @return {Number} Tipo de dato. Si el array tipado
- * es desconocido retorna null.
- */
-fre.gl.Variable.getGLTypeByTypedArray = function (gl, TypedArray) {
-  var context = gl;
-
-  if (TypedArray == Int8Array) {
-    return gl.BYTE;
-  }
-
-  if (TypedArray == Uint8Array) {
-    return gl.UNSIGNED_BYTE;
-  }
-
-  if (TypedArray == Int16Array) {
-    return gl.SHORT;
-  }
-
-  if (TypedArray == Uint16Array) {
-    return gl.UNSIGNED_SHORT;
-  }
-
-  if (TypedArray == Int32Array) {
-    return gl.INT;
-  }
-
-  if (TypedArray == Uint32Array) {
-    return gl.UNSIGNED_INT;
-  }
-
-  if (TypedArray == Float32Array) {
-    return gl.FLOAT;
-  }
-
-  return null;
-};
-
-/**
- * Sufijo por tipo de dato.
- * @param {WebGLRenderingContext} gl Context de renderizado WebGL.
- * @param  {String} prefix Prefijo del calificador.
- * @param  {Number} type Tipo de dato.
- * @return {String} Sufijo. Si el tipo de dato es desconocido
- * retorna un string vacío.
- */
-fre.gl.Variable.getSetterNameByType = function (gl, prefix, type) {
-  var context = gl;
-
-  if (type == context.FLOAT) {
-    return prefix + '1fv';
-  }
-
-  if (type == context.FLOAT_VEC2) {
-    return prefix + '2fv';
-  }
-
-  if (type == context.FLOAT_VEC3) {
-    return prefix + '3fv';
-  }
-
-  if (type == context.FLOAT_VEC4) {
-    return prefix + '4fv';
-  }
-
-  if (type == context.INT) {
-    return prefix + '1iv';
-  }
-
-  if (type == context.INT_VEC2) {
-    return prefix + '2iv';
-  }
-
-  if (type == context.INT_VEC3) {
-    return prefix + '3iv';
-  }
-
-  if (type == context.INT_VEC4) {
-    return prefix + '4iv';
-  }
-
-  if (type == context.BOOL) {
-    return prefix + '1iv';
-  }
-
-  if (type == context.BOOL_VEC2) {
-    return prefix + '2iv';
-  }
-
-  if (type == context.BOOL_VEC3) {
-    return prefix + '3iv';
-  }
-
-  if (type == context.BOOL_VEC4) {
-    return prefix + '4iv';
-  }
-
-  if (type == context.FLOAT_MAT2) {
-    return prefix + 'Matrix2fv';
-  }
-
-  if (type == context.FLOAT_MAT3) {
-    return prefix + 'Matrix3fv';
-  }
-
-  if (type == context.FLOAT_MAT4) {
-    return prefix + 'Matrix4fv';
-  }
-
-  fre.error('Error: tipo desconocido 0x' + type.toString(16));
-  return '';
-};
-
-module.exports = fre.gl.Variable;
-
-},{}],10:[function(require,module,exports){
-'use strict';
-
-fre = require('../fre');
-
-fre.gl = {
+var gl = Object.create(null, {
   /**
    * Obtiene un contexto WebGL y lo retorna.
-   *
-   * @todo Permitir multiples contextos. Actualmente solo permite
-   * manejar un contexto.
-   *
    * @param  {HTMLCanvasElement} canvas Elemento canvas.
    * @param  {Object} attrs Atributos del contexto.
    * @return {WebGLRenderingContext} Contexto de renderizado
    * WebGL. Si el navegador no lo soporta retorna null.
    */
-  getWebGLContext: function (canvas, attrs) {
-    var context = null;
+  getWebGLContext: {
+    value: function (canvas, attrs) {
+      var context = null;
 
-    try {
-      context = canvas.getContext('webgl', attrs) ||
-                canvas.getContext('experimental-webgl', attrs);
-    } catch (e) {}
+      try {
+        context = canvas.getContext('webgl', attrs) ||
+                  canvas.getContext('experimental-webgl', attrs);
+      } catch (e) {}
 
-    if (!context) {
-      canvas.innerText = 'No se puede inicializar WebGL. Tu navegador no es compatible.';
-    }
+      if (!context) {
+        canvas.innerText = 'No se puede inicializar WebGL. Tu navegador no es compatible.';
+      }
 
-    return context;
+      return context;
+    },
+    enumerable: true
+  },
+
+  /**
+   * Crea un webGLShader por String o HTMLScriptElement y retorna un objeto
+   * shader.
+   * @param  {WebGLRenderingContext} webGL Contexto de renderizado WebGL.
+   * @param  {String|HTMLScriptElement} source Fuente del shader.
+   * @param  {Number} [type] Tipo de shader.
+   * @return {Object} Objeto shader.
+   */
+  getShader: {
+    value: function (webGL, source, type) {
+      var webGLShader;
+
+      if (source instanceof HTMLScriptElement) {
+        webGLShader = fre.gl.createShaderWithScript(webGL, source, type);
+      } else {
+        webGLShader = fre.gl.createShader(webGL, source, type);
+      }
+
+      var shader = Object.create(fre.gl.shader);
+      shader.webGLShader = webGLShader;
+
+      return shader;
+    },
+    enumerable: true
+  },
+
+  /**
+   * Crea un webGLShader y lo retorna.
+   * @param  {WebGLRenderingContext} webGL Contexto de renderizado WebGL.
+   * @param  {String} source Fuente del shader.
+   * @param  {Number} type Tipo de shader.
+   * @return {WebGLShader} Shader WebGL. Si no se pudo crear o compilar
+   * retorna null.
+   */
+  createShader: {
+    value: function (webGL, source, type) {
+      // Crea el shader
+      var webGLShader = webGL.createShader(type);
+
+      // Verifica la creación
+      if (!webGLShader) {
+        fre.error('Incapaz de crear el webGLShader.');
+        return null;
+      }
+
+      // Carga la fuente del shader
+      webGL.shaderSource(webGLShader, source);
+
+      // Compila el shader
+      webGL.compileShader(webGLShader);
+
+      // Verifica el estado de la compilación
+      var compiled = webGL.getShaderParameter(webGLShader, webGL.COMPILE_STATUS);
+      if (!compiled) {
+        // Algo salió mal y obtiene el error
+        var log = webGL.getShaderInfoLog(webGLShader, webGL.COMPILE_STATUS);
+        fre.error('Error al compilar el webGLShader: ' + log);
+
+        // Elimina el shader
+        webGL.deleteShader(webGLShader);
+
+        return null;
+      }
+
+      return webGLShader;
+    },
+    enumerable: true
+  },
+
+  /**
+   * Crea un webGLShader por HTMLScriptElement y lo retorna.
+   * @param  {WebGLRenderingContext} webGL Contexto de renderizado WebGL.
+   * @param  {HTMLScriptElement} script Fuente del shader.
+   * @param  {Number} type Tipo de shader.
+   * @return {WebGLShader} Shader WebGL. Si no se pudo crear o compilar
+   * retorna null.
+   */
+  createShaderWithScript: {
+    value: function (webGL, script, type) {
+      // ¿Existe el script?
+      if (!script) {
+        fre.error('Error: elemento script desconocido.');
+        return null;
+      }
+
+      var source = script.text;
+
+      // Verifica si se pasó un tipo de shader
+      if (!type) {
+        // No se pasó ningún tipo y usa el tipo definido en el script
+        if (script.type == 'x-shader/x-vertex') {
+          type = webGL.VERTEX_SHADER;
+        }
+
+        if (script.type == 'x-shader/x-fragment') {
+          type = webGL.FRAGMENT_SHADER;
+        }
+      }
+
+      // Verifica si es un tipo conocido
+      if (type !== webGL.VERTEX_SHADER && type !== webGL.FRAGMENT_SHADER) {
+        fre.error('Error: tipo de webGLShader desconocido.');
+        return null;
+      }
+
+      return fre.gl.createShader(gl, source, type);
+    },
+    enumerable: true
+  },
+
+  /**
+   * Crea un webGLProgram y retorna un objeto program.
+   * @param  {WebGLRenderingContext} webGL Contexto de renderizado WebGL.
+   * @param  {shader[]|String[]|HTMLScriptElement[]} shaders Fuentes de los
+   * shaders.
+   * @return {Object} Objeto program.
+   */
+  getProgram: {
+    value: function (webGL, shadersSources) {
+      var shaders = [];
+
+      for (var i = 0; i < shadersSources.length; i++) {
+        var source = shadersSources[i];
+        var type = fre.gl.shader.types[i];
+        var shader;
+
+        if (typeof source == 'object') {
+          shader = source;
+        } else if (typeof source == 'string') {
+          shader = fre.gl.getShader(webGL, source, type);
+        } else {
+          shader = fre.gl.getShader(webGL, source);
+        }
+
+        if (!shader) {
+          return null;
+        }
+
+        shaders.push(shader);
+      }
+
+      var webGLProgram = fre.gl.createProgram(webGL, shaders);
+
+      var program = Object.create(fre.gl.program);
+      program.shaders = shaders;
+      program.attributes = fre.gl.getAttributesCollection(webGL, webGLProgram);
+      program.uniforms = fre.gl.getUniformsCollection(webGL, webGLProgram);
+      program.webGLProgram = webGLProgram;
+
+      return program;
+    },
+    enumerable: true
+  },
+
+  /**
+   * Crea un webGLProgram y lo retorna.
+   * @param  {WebGLRenderingContext} webGL Contexto de renderizado WebGL.
+   * @param  {shaders[]} shaders Objetos shader.
+   * @return {WebGLProgram} Programa WebGL. Si no se pudo vincular retorna null.
+   */
+  createProgram: {
+    value: function (webGL, shaders) {
+      // Crea el programa
+      var webGLProgram = webGL.createProgram();
+
+      // Adjunta los shaders al programa
+      shaders.forEach(function (shader) {
+        webGL.attachShader(webGLProgram, shader.webGLShader);
+      });
+
+      // Vincula el programa
+      webGL.linkProgram(webGLProgram);
+
+      // Verifica el estado del vínculo
+      var linked = webGL.getProgramParameter(webGLProgram, webGL.LINK_STATUS);
+      if (!linked) {
+        // Algo salió mal y obtiene el error
+        var log = webGL.getProgramInfoLog(webGLProgram);
+        fre.error('Error al vincular el webGLProgram: ' + log);
+
+        // Elimina el programa
+        webGL.deleteProgram(webGLProgram);
+
+        return null;
+      }
+
+      return webGLProgram;
+    },
+    enumerable: true
+  },
+
+  /**
+   * Array tipado por tipo de dato.
+   * @param  {WebGLRenderingContext} webGL Contexto de renderizado WebGL.
+   * @param  {Number} type Tipo de dato.
+   * @return {Function} Constructor de un array tipado. Si el tipo
+   * de dato es desconocido retorna null.
+   */
+  getTypedArrayByType: {
+    value: function (webGL, type) {
+      var context = webGL;
+
+      if (type == context.BYTE) {
+        return Int8Array;
+      }
+
+      if (type == context.UNSIGNED_BYTE || type == context.BOOL ||
+          type == context.BOOL_VEC2 || type == context.BOOL_VEC3 ||
+          type == context.BOOL_VEC4) {
+        return Uint8Array;
+      }
+
+      if (type == context.SHORT) {
+        return Int16Array;
+      }
+
+      if (type == context.UNSIGNED_SHORT) {
+        return Uint16Array;
+      }
+
+      if (type == context.INT || type == context.INT_VEC2 ||
+          type == context.INT_VEC3 || type == context.INT_VEC4) {
+        return Int32Array;
+      }
+
+      if (type == context.UNSIGNED_INT) {
+        return Uint32Array;
+      }
+
+      if (type == context.FLOAT || type == context.FLOAT_VEC2 ||
+          type == context.FLOAT_VEC3 || type == context.FLOAT_VEC4 ||
+          type == context.FLOAT_MAT2 || type == context.FLOAT_MAT3 ||
+          type == context.FLOAT_MAT4) {
+        return Float32Array;
+      }
+
+      return null;
+    },
+    enumerable: true
+  },
+
+  /**
+   * Sufijo por tipo de dato.
+   * @param  {WebGLRenderingContext} webGL Contexto de renderizado WebGL.
+   * @param  {String} prefix Prefijo del calificador.
+   * @param  {Number} type Tipo de dato.
+   * @return {String} Sufijo. Si el tipo de dato es desconocido
+   * retorna un string vacío.
+   */
+  getSetterNameByType: {
+    value: function (webGL, prefix, type) {
+      var context = webGL;
+
+      if (type == context.FLOAT) {
+        return prefix + '1fv';
+      }
+
+      if (type == context.FLOAT_VEC2) {
+        return prefix + '2fv';
+      }
+
+      if (type == context.FLOAT_VEC3) {
+        return prefix + '3fv';
+      }
+
+      if (type == context.FLOAT_VEC4) {
+        return prefix + '4fv';
+      }
+
+      if (type == context.INT) {
+        return prefix + '1iv';
+      }
+
+      if (type == context.INT_VEC2) {
+        return prefix + '2iv';
+      }
+
+      if (type == context.INT_VEC3) {
+        return prefix + '3iv';
+      }
+
+      if (type == context.INT_VEC4) {
+        return prefix + '4iv';
+      }
+
+      if (type == context.BOOL) {
+        return prefix + '1iv';
+      }
+
+      if (type == context.BOOL_VEC2) {
+        return prefix + '2iv';
+      }
+
+      if (type == context.BOOL_VEC3) {
+        return prefix + '3iv';
+      }
+
+      if (type == context.BOOL_VEC4) {
+        return prefix + '4iv';
+      }
+
+      if (type == context.FLOAT_MAT2) {
+        return prefix + 'Matrix2fv';
+      }
+
+      if (type == context.FLOAT_MAT3) {
+        return prefix + 'Matrix3fv';
+      }
+
+      if (type == context.FLOAT_MAT4) {
+        return prefix + 'Matrix4fv';
+      }
+
+      fre.error('Error: tipo desconocido 0x' + type.toString(16));
+      return '';
+    },
+    enumerable: true
+  },
+
+  /**
+   * Tipo de dato por array tipado.
+   * @param  {WebGLRenderingContext} webGL Contexto de renderizado WebGL.
+   * @param  {TypedArray} TypedArray Objeto de array tipado.
+   * @return {Number} Tipo de dato. Si el array tipado
+   * es desconocido retorna null.
+   */
+  getGLTypeByTypedArray: {
+    value: function (webGL, TypedArray) {
+      var context = webGL;
+
+      if (TypedArray == Int8Array) {
+        return context.BYTE;
+      }
+
+      if (TypedArray == Uint8Array) {
+        return context.UNSIGNED_BYTE;
+      }
+
+      if (TypedArray == Int16Array) {
+        return context.SHORT;
+      }
+
+      if (TypedArray == Uint16Array) {
+        return context.UNSIGNED_SHORT;
+      }
+
+      if (TypedArray == Int32Array) {
+        return context.INT;
+      }
+
+      if (TypedArray == Uint32Array) {
+        return context.UNSIGNED_INT;
+      }
+
+      if (TypedArray == Float32Array) {
+        return context.FLOAT;
+      }
+
+      return null;
+    },
+    enumerable: true
+  },
+
+  /**
+   * Obtiene una variable con calificador attribute y retorna un objeto attribute.
+   * @param  {WebGLRenderingContext} webGL Contexto de renderizado WebGL.
+   * @param  {WebGLProgram} program Programa WebGL.
+   * @param  {WebGLActiveInfo} info Información del attribute.
+   * @return {Object} Objeto attribute.
+   */
+  getAttribute: {
+    value: function (webGL, program, info) {
+      var setterName = fre.gl.getSetterNameByType(webGL, 'vertexAttrib', info.type);
+
+      if (!setterName) {
+        return null;
+      }
+
+      var index = webGL.getAttribLocation(program, info.name);
+      var TypedArray = fre.gl.getTypedArrayByType(webGL, info.type);
+
+      var attribute = Object.create(fre.gl.attribute);
+      attribute.name = info.name;
+      attribute.type = info.type;
+      attribute.size = info.size;
+      attribute.index = index;
+      attribute.set = setter(setterName, index, TypedArray);
+      attribute.setPointer = pointerSetter(index);
+
+      function setter(name, index, TypedArray) {
+        return function (value) {
+          if (TypedArray) {
+            value = new TypedArray(value);
+          }
+
+          webGL[name](index, value);
+        };
+      }
+
+      function pointerSetter(index) {
+        return function (attrData) {
+          // Valores por defecto
+          var type = attrData.type ||
+              fre.gl.getGLTypeByTypedArray(webGL, TypedArray);
+          var normalized = attrData.normalized || false;
+          var stride = attrData.stride || 0;
+          var offset = attrData.offset || 0;
+
+          webGL.bindBuffer(attrData.buffer.target, attrData.buffer.webGLBuffer);
+          webGL.enableVertexAttribArray(index);
+          webGL.vertexAttribPointer(
+            index,
+            attrData.size,
+            type,
+            normalized,
+            stride,
+            offset
+          );
+        }
+      }
+
+      return attribute;
+    },
+    enumerable: true
+  },
+
+  /**
+   * Recorre los parámetros ACTIVE_ATTRIBUTES, crea una colección de objetos
+   * attribute y la retorna.
+   * @param  {WebGLRenderingContext} webGL Context de renderizado WebGL.
+   * @param  {WebGLProgram} program Programa WebGL.
+   * @return {Object} Objeto attributesCollection.
+   */
+  getAttributesCollection: {
+    value: function (webGL, program) {
+      var attributesCollection = Object.create(null, {
+        collection: {
+          value: Object.create(null),
+          enumerable: true
+        }
+      });
+      var num = webGL.getProgramParameter(program, webGL.ACTIVE_ATTRIBUTES);
+
+      for (var i = 0; i < num; i++) {
+        var info = webGL.getActiveAttrib(program, i);
+        if (!info) {
+          break;
+        }
+
+        Object.defineProperty(attributesCollection.collection, info.name, {
+          value: fre.gl.getAttribute(webGL, program, info),
+          writable: true,
+          configurable: true,
+          enumerable: true
+        });
+      }
+
+      Object.defineProperty(attributesCollection, 'set', {
+        value: function (value) {
+          var collection = attributesCollection.collection;
+
+          Object.keys(collection).forEach(function (name) {
+            var attrib = collection[name];
+            var attribData = value[name];
+
+            // ¿Hay un buffer? Establece los datos al puntero.
+            if (attribData.buffer)  {
+              attrib.setPointer(attribData);
+            } else {
+              attrib.set(attribData);
+            }
+          });
+        },
+        enumerable: true
+      });
+
+      return attributesCollection;
+    },
+    enumerable: true
+  },
+
+  /**
+   * Obtiene una variable con calificador uniform y retorn un objeto uniform.
+   * @param  {WebGLRenderingContext} webGL Contexto de renderizado WebGL.
+   * @param  {WebGLProgram} program Programa WebGL.
+   * @param  {WebGLActiveInfo} info Información del uniform.
+   * @return {Object} Objeto uniform.
+   */
+  getUniform: {
+    value: function (webGL, program, info) {
+      var setterName = fre.gl.getSetterNameByType(webGL, 'uniform', info.type);
+
+      if (!setterName) {
+        return null;
+      }
+
+      var TypedArray = fre.gl.getTypedArrayByType(webGL, info.type);
+      var location = webGL.getUniformLocation(program, info.name);
+
+      var uniform = Object.create(fre.gl.uniform);
+      uniform.name = info.name;
+      uniform.type = info.type;
+      uniform.size = info.size;
+      uniform.location = location;
+      uniform.set =  setter(setterName, location, TypedArray);
+
+      function setter(name, location, TypedArray) {
+        if (/^uniformMatrix[2-4][fi]v$/.test(name)) {
+          return function (value, transpose) {
+            if (TypedArray) {
+              value = new TypedArray(value);
+            }
+
+            webGL[name](location, transpose, value);
+          };
+        }
+
+        return function (value) {
+          if (TypedArray) {
+            value = new TypedArray(value);
+          }
+
+          webGL[name](location, value);
+        };
+      }
+
+      return uniform;
+    },
+    enumerable: true
+  },
+
+  /**
+   * Recorre los parámetros ACTIVE_UNIFORMS, crea una colección de objetos
+   * uniform y la retorna.
+   * @param  {WebGLRenderingContext} webGL Context de renderizado WebGL.
+   * @param  {WebGLProgram} program Programa WebGL.
+   * @return {Object} Objeto uniformsCollection.
+   */
+  getUniformsCollection: {
+    value: function (webGL, program) {
+      var uniformsCollection = Object.create(null, {
+        collection: {
+          value: Object.create(null),
+          enumerable: true
+        }
+      });
+      var num = webGL.getProgramParameter(program, webGL.ACTIVE_UNIFORMS);
+
+      for (var i = 0; i < num; i++) {
+        var info = webGL.getActiveUniform(program, i);
+        if (!info) {
+          break;
+        }
+
+        var name = info.name;
+
+        // Quita el sufijo de array
+        if (name.substr(-3) === '[0]') {
+          name = name.substr(0, name.length - 3);
+        }
+
+        Object.defineProperty(uniformsCollection.collection, name, {
+          value: fre.gl.getUniform(webGL, program, info),
+          writable: true,
+          configurable: true,
+          enumerable: true
+        });
+      }
+
+      Object.defineProperty(uniformsCollection, 'set', {
+        value: function (value) {
+          var collection = uniformsCollection.collection;
+
+          Object.keys(collection).forEach(function (name) {
+            var uniform = collection[name];
+            uniform.set(value[name]);
+          });
+        },
+        enumerable: true
+      });
+
+      return uniformsCollection;
+    },
+    enumerable: true
+  },
+
+  /**
+   * Crea un webGLBuffer y retorna un objeto buffer.
+   * @param  {WebGLRenderingContext} webGL Contexto de renderizado WebGL.
+   * @param  {Number} target Buffer objetivo.
+   * @param  {Number | ArrayBuffer} data Array de puntos o tamaño del buffer.
+   * @param  {Number} usage Uso del buffer.
+   * @return {Object} Objeto buffer.
+   */
+  getBuffer: {
+    value: function (webGL, target, data, usage) {
+      var webGLBuffer = webGL.createBuffer();
+
+      // Verifica la creación
+      if (!webGLBuffer) {
+        fre.error('Incapaz de crear el webGLBuffer.');
+        return null;
+      }
+
+      webGL.bindBuffer(target, webGLBuffer);
+      webGL.bufferData(target, data, usage);
+
+      var buffer = Object.create(fre.gl.buffer);
+      buffer.target = target;
+      buffer.webGLBuffer = webGLBuffer;
+
+      return buffer;
+    },
+    enumerable: true
+  },
+
+  /**
+   * Objeto shader.
+   * @type {Object}
+   */
+  shader: {
+    value: require('./shader.js'),
+    enumerable: true
+  },
+  /**
+   * Objeto program.
+   * @type {Object}
+   */
+  program: {
+    value: require('./program.js'),
+    enumerable: true
+  },
+  /**
+   * Objeto attribute.
+   * @type {Object}
+   */
+  attribute: {
+    value: require('./attribute.js'),
+    enumerable: true
+  },
+  /**
+   * Objeto uniform.
+   * @type {Object}
+   */
+  uniform: {
+    value: require('./uniform.js'),
+    enumerable: true
+  },
+  /**
+   * Objeto buffer.
+   * @type {Object}
+   */
+  buffer: {
+    value: require('./buffer.js'),
+    enumerable: true
   }
-};
+});
 
-module.exports = fre.gl;
+module.exports = gl;
 
-require('./Variable');
-require('./Attribute');
-require('./Uniform');
-require('./AttributesCollection');
-require('./UniformsCollection');
-require('./Buffer');
-require('./Program');
-require('./Shader');
-
-},{"../fre":1,"./Attribute":2,"./AttributesCollection":3,"./Buffer":4,"./Program":5,"./Shader":6,"./Uniform":7,"./UniformsCollection":8,"./Variable":9}],11:[function(require,module,exports){
+},{"./attribute.js":2,"./buffer.js":3,"./program.js":5,"./shader.js":6,"./uniform.js":7}],5:[function(require,module,exports){
 'use strict';
 
-fre.loader.ajax = function (url, loadCallback, progressCallback, errorCallback) {
+var program = Object.create(null, {
+  shaders: {
+    writable: true,
+    enumerable: true
+  },
+  attributes: {
+    writable: true,
+    enumerable: true
+  },
+  uniforms: {
+    writable: true,
+    enumerable: true
+  },
+  webGLProgram: {
+    writable: true,
+    enumerable: true
+  }
+});
+
+module.exports = program;
+
+},{}],6:[function(require,module,exports){
+'use strict';
+
+var FRAGMENT_SHADER = 0x8B30;
+var VERTEX_SHADER = 0x8B31;
+
+var shader = Object.create(null, {
+  types: {
+    value: [VERTEX_SHADER, FRAGMENT_SHADER],
+    enumerable: true
+  },
+  webGLShader: {
+    writable: true,
+    enumerable: true
+  }
+});
+
+module.exports = shader;
+
+},{}],7:[function(require,module,exports){
+'use strict';
+
+var uniform = Object.create(null, {
+  name: {
+    writable: true,
+    enumerable: true
+  },
+  type: {
+    writable: true,
+    enumerable: true
+  },
+  size: {
+    writable: true,
+    enumerable: true
+  },
+  location: {
+    writable: true,
+    enumerable: true
+  },
+  set: {
+    writable: true,
+    enumerable: true
+  }
+});
+
+module.exports = uniform;
+
+},{}],8:[function(require,module,exports){
+'use strict';
+
+var ajax = function (url, loadCallback, progressCallback, errorCallback) {
   var xhr = new XMLHttpRequest();
 
   xhr.addEventListener('load', function (evt) {
@@ -666,23 +874,28 @@ fre.loader.ajax = function (url, loadCallback, progressCallback, errorCallback) 
   return xhr;
 };
 
-},{}],12:[function(require,module,exports){
+module.exports = ajax;
+
+},{}],9:[function(require,module,exports){
 'use strict';
 
-fre.loader = {};
+var loader = Object.create(null, {
+  ajax: {
+    value: require('./ajax'),
+    enumerable: true
+  }
+});
 
-module.exports = fre.loader;
+module.exports = loader;
 
-require('./ajax');
-
-},{"./ajax":11}],13:[function(require,module,exports){
+},{"./ajax":8}],10:[function(require,module,exports){
 'use strict';
 
-fre.math = require('../../vendor/gl-matrix/dist/gl-matrix-min.js');
+var math = require('../../vendor/gl-matrix/dist/gl-matrix-min.js');
 
-module.exports = fre.math;
+module.exports = math;
 
-},{"../../vendor/gl-matrix/dist/gl-matrix-min.js":14}],14:[function(require,module,exports){
+},{"../../vendor/gl-matrix/dist/gl-matrix-min.js":11}],11:[function(require,module,exports){
 /**
  * @fileoverview gl-matrix - High performance matrix and vector operations
  * @author Brandon Jones
