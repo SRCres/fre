@@ -1,7 +1,10 @@
 'use strict';
 
-fre.loader = {};
+var loader = Object.create(null, {
+  ajax: {
+    value: require('./ajax'),
+    enumerable: true
+  }
+});
 
-module.exports = fre.loader;
-
-require('./ajax');
+module.exports = loader;

@@ -1,6 +1,6 @@
 'use strict';
 
-fre.loader.ajax = function (url, loadCallback, progressCallback, errorCallback) {
+var ajax = function (url, loadCallback, progressCallback, errorCallback) {
   var xhr = new XMLHttpRequest();
 
   xhr.addEventListener('load', function (evt) {
@@ -27,3 +27,5 @@ fre.loader.ajax = function (url, loadCallback, progressCallback, errorCallback) 
 
   return xhr;
 };
+
+module.exports = ajax;

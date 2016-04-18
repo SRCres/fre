@@ -1,5 +1,5 @@
 'use strict';
 
-fre.math = require('../../vendor/gl-matrix/dist/gl-matrix-min.js');
+var math = require('../../vendor/gl-matrix/dist/gl-matrix-min.js');
 
-module.exports = fre.math;
+module.exports = math;
