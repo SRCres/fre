@@ -1,28 +1,6 @@
 function main() {
-  var shaderSources = [];
-
-  fre.loader.ajax('shaders/viewing.vert', onLoadVert, null, onError);
-  fre.loader.ajax('shaders/viewing.frag', onLoadFrag, null, onError);
-
-  function onLoadVert(evt, xhr) {
-    shaderSources[0] = xhr.response;
-    loaded();
-  }
-
-  function onLoadFrag(evt, xhr) {
-    shaderSources[1] = xhr.response;
-    loaded();
-  }
-
-  function onError(evt) {
-    console.log(evt);
-  }
-
-  function loaded() {
-    if (shaderSources.length === 2) {
-      initialize(shaderSources);
-    }
-  }
+  var shaderFiles = ['shaders/viewing.vert', 'shaders/viewing.frag'];
+  loadShaders(shaderFiles, initialize);
 }
 
 function initialize(shaderSources) {
@@ -34,9 +12,9 @@ function initialize(shaderSources) {
     return;
   }
 
-  var program = new fre.gl.Program(gl, shaderSources);
+  var program = new fre.gl.getProgram(gl, shaderSources);
 
-  var TypedArray = fre.gl.Variable.getTypedArrayByType(gl, program.attributes.a_Position.type);
+  var TypedArray = fre.gl.getTypedArrayByType(gl, program.attributes.collection.a_Position.type);
   var vertexColorArray = new TypedArray([
      0.0,  0.5, -0.4, 0.0, 1.0, 1.0, // Cian fondo
     -0.5, -0.5, -0.4, 0.0, 1.0, 1.0,
@@ -50,7 +28,7 @@ function initialize(shaderSources) {
     -0.5, -0.5,  0.0, 1.0, 0.0, 1.0,
      0.5, -0.5,  0.0, 1.0, 0.0, 1.0
   ]);
-  var buffer = new fre.gl.Buffer(gl, gl.ARRAY_BUFFER, vertexColorArray, gl.STATIC_DRAW);
+  var buffer = new fre.gl.getBuffer(gl, gl.ARRAY_BUFFER, vertexColorArray, gl.STATIC_DRAW);
 
   var FSIZE = vertexColorArray.BYTES_PER_ELEMENT;
 
@@ -70,7 +48,7 @@ function initialize(shaderSources) {
     u_ViewMatrix: fre.math.mat4.create()
   };
 
-  program.attributes.setCollection(data);
+  program.attributes.set(data);
 
   gl.useProgram(program.webGLProgram);
 
@@ -79,7 +57,7 @@ function initialize(shaderSources) {
   var up = [0.0, 1.0, 0.0];
   fre.math.mat4.lookAt(data.u_ViewMatrix, eye, at, up);
 
-  program.uniforms.setCollection(data);
+  program.uniforms.set(data);
 
   var n = vertexColorArray.length / 6;
   function draw() {

@@ -1,29 +1,11 @@
 function main() {
-  var shaderSources = [];
+  var shaderFiles = ['shaders/projecting.vert', 'shaders/projecting.frag'];
+  loadShaders(shaderFiles, initialize);
+}
 
-  fre.loader.ajax('shaders/projecting.vert', onLoadVert, null, onError);
-  fre.loader.ajax('shaders/projecting.frag', onLoadFrag, null, onError);
-
-  function onLoadVert(evt, xhr) {
-    shaderSources[0] = xhr.response;
-    loaded();
-  }
-
-  function onLoadFrag(evt, xhr) {
-    shaderSources[1] = xhr.response;
-    loaded();
-  }
-
-  function onError(evt) {
-    console.log(evt);
-  }
-
-  function loaded() {
-    if (shaderSources.length === 2) {
-      projectionContext('ortho', shaderSources, false);
-      projectionContext('perspective', shaderSources, true);
-    }
-  }
+function initialize(shaderSources) {
+  projectionContext('ortho', shaderSources, false);
+  projectionContext('perspective', shaderSources, true);
 }
 
 function projectionContext(suffix, shaderSources) {
@@ -39,9 +21,9 @@ function projectionContext(suffix, shaderSources) {
 
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
 
-  var program = new fre.gl.Program(gl, shaderSources);
+  var program = fre.gl.getProgram(gl, shaderSources);
 
-  var TypedArray = fre.gl.Variable.getTypedArrayByType(gl, program.attributes.a_Position.type);
+  var TypedArray = fre.gl.getTypedArrayByType(gl, program.attributes.collection.a_Position.type);
   var vertexColorArray = new TypedArray([
      0.0,  1.0, -1.0,  0.4,  1.0,  0.4,
     -0.5, -1.0, -1.0,  0.4,  1.0,  0.4,
@@ -55,7 +37,7 @@ function projectionContext(suffix, shaderSources) {
     -0.5, -1.0,  1.0,  0.4,  0.4,  1.0,
      0.5, -1.0,  1.0,  1.0,  0.4,  0.4
   ]);
-  var buffer = new fre.gl.Buffer(gl, gl.ARRAY_BUFFER, vertexColorArray, gl.STATIC_DRAW);
+  var buffer = fre.gl.getBuffer(gl, gl.ARRAY_BUFFER, vertexColorArray, gl.STATIC_DRAW);
 
   var FSIZE = vertexColorArray.BYTES_PER_ELEMENT;
 
@@ -74,7 +56,7 @@ function projectionContext(suffix, shaderSources) {
     u_MvpMatrix: fre.math.mat4.create()
   };
 
-  program.attributes.setCollection(data);
+  program.attributes.set(data);
 
   gl.useProgram(program.webGLProgram);
 
@@ -106,7 +88,7 @@ function projectionContext(suffix, shaderSources) {
 
   var modelViewMatrix = fre.math.mat4.create();
 
-  program.uniforms.setCollection(data);
+  program.uniforms.set(data);
 
   var angle = 0;
   var animationInfoId = suffix == 'ortho' ?  'animation-ortho' : 'animation-perspective';
@@ -136,7 +118,7 @@ function projectionContext(suffix, shaderSources) {
     fre.math.mat4.multiply(modelViewMatrix, viewMatrix, modelMatrix);
     fre.math.mat4.multiply(data.u_MvpMatrix, projMatrix, modelViewMatrix);
 
-    program.uniforms.u_MvpMatrix.set(data.u_MvpMatrix);
+    program.uniforms.collection.u_MvpMatrix.set(data.u_MvpMatrix);
 
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 

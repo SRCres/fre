@@ -1,28 +1,6 @@
 function main() {
-  var shaderSources = [];
-
-  fre.loader.ajax('shaders/triangle.vert', onLoadVert, null, onError);
-  fre.loader.ajax('shaders/triangle.frag', onLoadFrag, null, onError);
-
-  function onLoadVert(evt, xhr) {
-    shaderSources[0] = xhr.response;
-    loaded();
-  }
-
-  function onLoadFrag(evt, xhr) {
-    shaderSources[1] = xhr.response;
-    loaded();
-  }
-
-  function onError(evt) {
-    console.log(evt);
-  }
-
-  function loaded() {
-    if (shaderSources.length === 2) {
-      initialize(shaderSources);
-    }
-  }
+  var shaderFiles = ['shaders/triangle.vert', 'shaders/triangle.frag'];
+  loadShaders(shaderFiles, initialize);
 }
 
 function initialize(shaderSources) {
@@ -34,15 +12,15 @@ function initialize(shaderSources) {
     return;
   }
 
-  var program = new fre.gl.Program(gl, shaderSources);
+  var program = new fre.gl.getProgram(gl, shaderSources);
 
-  var TypedArray = fre.gl.Variable.getTypedArrayByType(gl, program.attributes.a_Position.type);
+  var TypedArray = fre.gl.getTypedArrayByType(gl, program.attributes.collection.a_Position.type);
   var vertexArray = new TypedArray([
     -0.5, -0.5, 0.0,
     0.5, -0.5, 0.0,
     0.0, 0.5, 0.0
   ]);
-  var buffer = new fre.gl.Buffer(gl, gl.ARRAY_BUFFER, vertexArray, gl.STATIC_DRAW);
+  var buffer = new fre.gl.getBuffer(gl, gl.ARRAY_BUFFER, vertexArray, gl.STATIC_DRAW);
 
   var data = {
     a_Position: {
@@ -52,11 +30,11 @@ function initialize(shaderSources) {
     u_FragColor: [1.0, 1.0, 0.0, 1.0]
   };
 
-  program.attributes.setCollection(data);
+  program.attributes.set(data);
 
   gl.useProgram(program.webGLProgram);
 
-  program.uniforms.setCollection(data);
+  program.uniforms.set(data);
 
   draw();
 

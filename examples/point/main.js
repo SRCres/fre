@@ -1,28 +1,6 @@
 function main() {
-  var shaderSources = [];
-
-  fre.loader.ajax('shaders/point.vert', onLoadVert, null, onError);
-  fre.loader.ajax('shaders/point.frag', onLoadFrag, null, onError);
-
-  function onLoadVert(evt, xhr) {
-    shaderSources[0] = xhr.response;
-    loaded();
-  }
-
-  function onLoadFrag(evt, xhr) {
-    shaderSources[1] = xhr.response;
-    loaded();
-  }
-
-  function onError(evt) {
-    console.log(evt);
-  }
-
-  function loaded() {
-    if (shaderSources.length === 2) {
-      initialize(shaderSources);
-    }
-  }
+  var shaderFiles = ['shaders/point.vert', 'shaders/point.frag'];
+  loadShaders(shaderFiles, initialize);
 }
 
 function initialize(shaderSources) {
@@ -30,11 +8,11 @@ function initialize(shaderSources) {
       gl = fre.gl.getWebGLContext(canvas);
 
   if (!gl) {
-    console.log('No se pudo obtener el contexto de renderizado para WebGL.');
+    fre.error('No se pudo obtener el contexto de renderizado para WebGL.');
     return;
   }
 
-  var program = new fre.gl.Program(gl, shaderSources);
+  var program = new fre.gl.getProgram(gl, shaderSources);
 
   var data = {
     a_Position: [0.0, 0.0, 0.0, 1.0],
@@ -42,11 +20,11 @@ function initialize(shaderSources) {
     u_FragColor: [1.0, 1.0, 0.0, 1.0]
   };
 
-  program.attributes.setCollection(data);
+  program.attributes.set(data);
 
   gl.useProgram(program.webGLProgram);
 
-  program.uniforms.setCollection(data);
+  program.uniforms.set(data);
 
   draw();
 
