@@ -3,7 +3,10 @@ var dest = './dist',
 
 module.exports = {
   browserSync: {
-    proxy: 'http://localhost/~srcres/Projects/fre/examples/'
+    server: {
+      baseDir: './'
+    },
+    startPath: 'examples'
   },
   browserify: {
     entries: src + '/fre.js',
