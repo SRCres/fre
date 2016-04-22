@@ -28,6 +28,8 @@ window.fre = Object.create(null, {
   }
 });
 
+Object.preventExtensions(window.fre);
+
 },{"./gl/gl":4,"./loader/loader":9,"./math/math":10}],2:[function(require,module,exports){
 'use strict';
 
@@ -58,6 +60,8 @@ var attribute = Object.create(null, {
   }
 });
 
+Object.preventExtensions(attribute);
+
 module.exports = attribute;
 
 },{}],3:[function(require,module,exports){
@@ -80,6 +84,8 @@ var buffer = Object.create(null, {
     enumerable: true
   }
 });
+
+Object.preventExtensions(buffer);
 
 module.exports = buffer;
 
@@ -770,6 +776,8 @@ var gl = Object.create(null, {
   }
 });
 
+Object.preventExtensions(gl);
+
 module.exports = gl;
 
 },{"./attribute.js":2,"./buffer.js":3,"./program.js":5,"./shader.js":6,"./uniform.js":7}],5:[function(require,module,exports){
@@ -794,6 +802,8 @@ var program = Object.create(null, {
   }
 });
 
+Object.preventExtensions(program);
+
 module.exports = program;
 
 },{}],6:[function(require,module,exports){
@@ -812,6 +822,8 @@ var shader = Object.create(null, {
     enumerable: true
   }
 });
+
+Object.preventExtensions(shader);
 
 module.exports = shader;
 
@@ -840,6 +852,8 @@ var uniform = Object.create(null, {
     enumerable: true
   }
 });
+
+Object.preventExtensions(uniform);
 
 module.exports = uniform;
 
@@ -874,6 +888,8 @@ var ajax = function (url, loadCallback, progressCallback, errorCallback) {
   return xhr;
 };
 
+Object.preventExtensions(ajax);
+
 module.exports = ajax;
 
 },{}],9:[function(require,module,exports){
@@ -886,12 +902,16 @@ var loader = Object.create(null, {
   }
 });
 
+Object.preventExtensions(loader);
+
 module.exports = loader;
 
 },{"./ajax":8}],10:[function(require,module,exports){
 'use strict';
 
 var math = require('../../vendor/gl-matrix/dist/gl-matrix-min.js');
+
+Object.preventExtensions(math);
 
 module.exports = math;
 
