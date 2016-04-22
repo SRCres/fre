@@ -14,4 +14,6 @@ var shader = Object.create(null, {
   }
 });
 
+Object.preventExtensions(shader);
+
 module.exports = shader;

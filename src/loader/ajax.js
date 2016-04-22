@@ -28,4 +28,6 @@ var ajax = function (url, loadCallback, progressCallback, errorCallback) {
   return xhr;
 };
 
+Object.preventExtensions(ajax);
+
 module.exports = ajax;

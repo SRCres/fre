@@ -7,4 +7,6 @@ var loader = Object.create(null, {
   }
 });
 
+Object.preventExtensions(loader);
+
 module.exports = loader;

@@ -23,4 +23,6 @@ var uniform = Object.create(null, {
   }
 });
 
+Object.preventExtensions(uniform);
+
 module.exports = uniform;

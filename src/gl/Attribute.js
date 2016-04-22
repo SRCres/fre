@@ -27,4 +27,6 @@ var attribute = Object.create(null, {
   }
 });
 
+Object.preventExtensions(attribute);
+
 module.exports = attribute;

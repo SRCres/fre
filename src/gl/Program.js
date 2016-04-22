@@ -19,4 +19,6 @@ var program = Object.create(null, {
   }
 });
 
+Object.preventExtensions(program);
+
 module.exports = program;

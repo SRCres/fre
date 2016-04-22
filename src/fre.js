@@ -26,3 +26,5 @@ window.fre = Object.create(null, {
     enumerable: true
   }
 });
+
+Object.preventExtensions(window.fre);

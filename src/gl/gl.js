@@ -684,4 +684,6 @@ var gl = Object.create(null, {
   }
 });
 
+Object.preventExtensions(gl);
+
 module.exports = gl;

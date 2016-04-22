@@ -18,4 +18,6 @@ var buffer = Object.create(null, {
   }
 });
 
+Object.preventExtensions(buffer);
+
 module.exports = buffer;
